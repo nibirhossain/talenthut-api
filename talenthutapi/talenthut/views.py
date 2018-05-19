@@ -1,9 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from django.http import Http404
 from rest_framework import status
-from rest_framework import generics
 
 from django.contrib.auth.models import User
 
@@ -11,10 +9,12 @@ from .models import Talent, Address, Expertise, Resume
 from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
 from .models import Recruiter, HireEvent, HireEventType
 
-from .serializers import HireEventTypeSerializer, ExpertiseSerializer, TalentSerializer
-from .serializers import AddressSerializer, JobExperienceSerializer
-from .serializers import TechnicalSkillSerializer, EducationSerializer, LanguageSkillSerializer
-from .serializers import ResumeSerializer, HireEventSerializer, RecruiterSerializer, UserSerializer
+from .resume_serializers import HireEventTypeSerializer, ExpertiseSerializer, HireEventListAndDetailSerializer
+from .resume_serializers import AddressSerializer, JobExperienceSerializer
+from .resume_serializers import TechnicalSkillSerializer, EducationSerializer, LanguageSkillSerializer
+from .resume_serializers import ResumeSerializer, RecruiterSerializer
+from .user_serializers import UserSerializer
+from .talent_serializers import TalentListSerializer, TalentSerializer
 
 
 class UserList(APIView):
@@ -100,7 +100,7 @@ class TalentListByExpertise(APIView):
     def get(self, request, expertise_pk):
         # talents = Talent.objects.filter(expertises__id=expertise_pk)
         talents = Talent.objects.filter(expertises=expertise_pk)
-        serializer = TalentSerializer(talents, many=True)
+        serializer = TalentListSerializer(talents, many=True)
         return Response(serializer.data)
 
 
@@ -135,13 +135,13 @@ class TalentListByRecruiter(APIView):
         # .order_by('talent__user__firstname', 'talent__user__lastname', 'talent__id', '-event_time') \
         #     .distinct('talent__fuser__irstname', 'talent__user__lastname', 'talent__id')
 
+        # since sqlite3 does not support the distinct property, talents could be duplicated. Fix it later.
         hire_events = HireEvent.objects.filter(recruiter=recruiter_pk) \
         .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time')
 
         talents = [hire_event.talent for hire_event in hire_events]
-        print(talents)
+        serializer = TalentListSerializer(talents, many=True)
 
-        serializer = TalentSerializer(talents, many=True)
         return Response(serializer.data)
 
 
@@ -151,8 +151,11 @@ class TalentListByRecruiterUsingHireEventType(APIView):
     """
     def get(self, request, recruiter_pk, event_type_pk):
         hire_events = HireEvent.objects.filter(recruiter=recruiter_pk, hire_event_type_id=event_type_pk) \
-            .order_by('talent__firstname', 'talent__lastname')
-        serializer = HireEventSerializer(hire_events, many=True)
+            .order_by('talent__user__first_name', 'talent__user__last_name')
+
+        talents = [hire_event.talent for hire_event in hire_events]
+        serializer = TalentListSerializer(talents, many=True)
+
         return Response(serializer.data)
 
 
@@ -188,6 +191,120 @@ class TalentDetail(APIView):
 
 """
 ------------------- End : Implementation of TALENT model --------------------
+"""
+
+
+"""
+------------------- Start : Implementation of HIRE_EVENT model --------------------
+"""
+
+
+class HireEventList(APIView):
+    """
+    List all hire event type, or create a new hire event type.
+    """
+    def get(self, request):
+        hire_events = HireEvent.objects.all()
+        serializer = HireEventListAndDetailSerializer(hire_events, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = HireEventListAndDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class HireEventDetail(APIView):
+    """
+    Retrieve, update or delete a snippet instance.
+    """
+
+    def get_object(self, pk):
+        try:
+            return HireEvent.objects.get(pk=pk)
+        except HireEvent.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+        hire_event = self.get_object(pk)
+        serializer = HireEventListAndDetailSerializer(hire_event)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        hire_event = self.get_object(pk)
+        serializer = HireEventListAndDetailSerializer(hire_event, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        hire_event = self.get_object(pk)
+        hire_event.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+"""
+------------------- End : Implementation of HIRE_EVENT model --------------------
+"""
+
+
+"""
+------------------- Start : Implementation of HIRE_EVENT_TYPE model --------------------
+"""
+
+
+class HireEventTypeList(APIView):
+    """
+    List all hire event type, or create a new hire event type.
+    """
+    def get(self, request):
+        hire_event_types = HireEventType.objects.all()
+        serializer = HireEventTypeSerializer(hire_event_types, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = HireEventTypeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class HireEventTypeDetail(APIView):
+    """
+    Retrieve, update or delete a snippet instance.
+    """
+
+    def get_object(self, pk):
+        try:
+            return HireEventType.objects.get(pk=pk)
+        except HireEventType.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+        hire_event_type = self.get_object(pk)
+        serializer = HireEventTypeSerializer(hire_event_type)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        hire_event_type = self.get_object(pk)
+        serializer = HireEventTypeSerializer(hire_event_type, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        hire_event_type = self.get_object(pk)
+        hire_event_type.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+"""
+------------------- End : Implementation of HIRE_EVENT_TYPE model --------------------
 """
 
 
@@ -648,118 +765,4 @@ class RecruiterDetail(APIView):
 
 """
 ------------------- End : Implementation of RECRUITER model --------------------
-"""
-
-
-"""
-------------------- Start : Implementation of HIRE_EVENT model --------------------
-"""
-
-
-class HireEventList(APIView):
-    """
-    List all hire event type, or create a new hire event type.
-    """
-    def get(self, request):
-        hire_events = HireEvent.objects.all()
-        serializer = HireEventSerializer(hire_events, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = HireEventSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class HireEventDetail(APIView):
-    """
-    Retrieve, update or delete a snippet instance.
-    """
-
-    def get_object(self, pk):
-        try:
-            return HireEvent.objects.get(pk=pk)
-        except HireEvent.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk):
-        hire_event = self.get_object(pk)
-        serializer = HireEventSerializer(hire_event)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        hire_event = self.get_object(pk)
-        serializer = HireEventSerializer(hire_event, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        hire_event = self.get_object(pk)
-        hire_event.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-"""
-------------------- End : Implementation of HIRE_EVENT model --------------------
-"""
-
-
-"""
-------------------- Start : Implementation of HIRE_EVENT_TYPE model --------------------
-"""
-
-
-class HireEventTypeList(APIView):
-    """
-    List all hire event type, or create a new hire event type.
-    """
-    def get(self, request):
-        hire_event_types = HireEventType.objects.all()
-        serializer = HireEventTypeSerializer(hire_event_types, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = HireEventTypeSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class HireEventTypeDetail(APIView):
-    """
-    Retrieve, update or delete a snippet instance.
-    """
-
-    def get_object(self, pk):
-        try:
-            return HireEventType.objects.get(pk=pk)
-        except HireEventType.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk):
-        hire_event_type = self.get_object(pk)
-        serializer = HireEventTypeSerializer(hire_event_type)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        hire_event_type = self.get_object(pk)
-        serializer = HireEventTypeSerializer(hire_event_type, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        hire_event_type = self.get_object(pk)
-        hire_event_type.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-"""
-------------------- End : Implementation of HIRE_EVENT_TYPE model --------------------
 """
