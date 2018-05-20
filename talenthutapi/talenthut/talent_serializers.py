@@ -3,9 +3,9 @@ from django.db import transaction
 
 from .models import Talent
 from .user_serializers import UserSerializer
+from .hire_event_serializers import HireEventSerializer
 from .resume_serializers import (SexSerializer, ExpertiseSerializer,
-                               AddressSerializer, MaritalStatusSerializer, HireEventSerializer,
-                               ResumeSerializer)
+                                 AddressSerializer, MaritalStatusSerializer, ResumeSerializer)
 
 
 # The serializer is used in views
@@ -83,14 +83,14 @@ class TalentSerializer(serializers.ModelSerializer):
 
             expertise_data = validated_data.pop('expertises')
 
-            # Remove all existing expertises from the current talent
-            for expertise in instance.expertises.all():
-                instance.expertises.remove(expertise)
+            if expertise_data is not None:
+                # Remove all existing expertises from the current talent
+                for expertise in instance.expertises.all():
+                    instance.expertises.remove(expertise)
 
-            # Add new expertises to the current talent
-            for expertise in expertise_data:
-                instance.expertises.add(expertise)
-
+                # Add new expertises to the current talent
+                for expertise in expertise_data:
+                    instance.expertises.add(expertise)
             instance.save()
 
             return instance

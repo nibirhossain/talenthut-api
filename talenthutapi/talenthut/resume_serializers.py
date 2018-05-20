@@ -3,9 +3,7 @@ from rest_framework import serializers
 from .models import Address, Expertise, Resume
 
 from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
-from .models import Recruiter, HireEvent, HireEventType, Sex, MaritalStatus
-
-from .user_serializers import UserSerializer
+from .models import HireEventType, Sex, MaritalStatus
 
 
 # The serializer is used in other serializers and in views
@@ -74,25 +72,6 @@ class HireEventTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# The serializer is used in other serializers
-class HireEventSerializer(serializers.ModelSerializer):
-    hire_event_type = HireEventTypeSerializer()
-
-    class Meta:
-        model = HireEvent
-        fields = '__all__'
-        # fields = ('talent', '')
-
-
-# The serializer is used in views
-class HireEventListAndDetailSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = HireEvent
-        fields = '__all__'
-        # fields = ('talent', '')
-
-
 # The serializer is used in other serializers and in views
 class SexSerializer(serializers.ModelSerializer):
 
@@ -106,14 +85,5 @@ class MaritalStatusSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MaritalStatus
-        fields = '__all__'
-
-
-class RecruiterSerializer(serializers.ModelSerializer):
-    # hire_events = HireEventSerializer(source='hireevent_set', many=True, required=False)
-    user = UserSerializer(required=True)
-
-    class Meta:
-        model = Recruiter
         fields = '__all__'
 

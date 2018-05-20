@@ -9,12 +9,14 @@ from .models import Talent, Address, Expertise, Resume
 from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
 from .models import Recruiter, HireEvent, HireEventType
 
-from .resume_serializers import HireEventTypeSerializer, ExpertiseSerializer, HireEventListAndDetailSerializer
+from .resume_serializers import HireEventTypeSerializer, ExpertiseSerializer
+from .hire_event_serializers import HireEventListAndDetailSerializer
 from .resume_serializers import AddressSerializer, JobExperienceSerializer
 from .resume_serializers import TechnicalSkillSerializer, EducationSerializer, LanguageSkillSerializer
-from .resume_serializers import ResumeSerializer, RecruiterSerializer
+from .resume_serializers import ResumeSerializer
 from .user_serializers import UserSerializer
 from .talent_serializers import TalentListSerializer, TalentSerializer
+from .recruiter_serializers import RecruiterSerializer, RecruiterCreateSerializer, RecruiterUpdateSerializer
 
 
 class UserList(APIView):
@@ -726,7 +728,7 @@ class RecruiterList(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = RecruiterSerializer(data=request.data)
+        serializer = RecruiterCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -751,7 +753,8 @@ class RecruiterDetail(APIView):
 
     def put(self, request, pk):
         recruiter = self.get_object(pk)
-        serializer = RecruiterSerializer(recruiter, data=request.data)
+        # partial update possible e.g. only username or password can be updated
+        serializer = RecruiterUpdateSerializer(recruiter, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

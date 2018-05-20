@@ -55,25 +55,6 @@ class HireEventTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# The serializer is used in other serializers
-class HireEventSerializer(serializers.ModelSerializer):
-    hire_event_type = HireEventTypeSerializer()
-
-    class Meta:
-        model = HireEvent
-        fields = '__all__'
-        # fields = ('talent', '')
-
-
-# The serializer is used in views
-class HireEventListAndDetailSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = HireEvent
-        fields = '__all__'
-        # fields = ('talent', '')
-
-
 # The serializer is used in other serializers and in views
 class SexSerializer(serializers.ModelSerializer):
 
