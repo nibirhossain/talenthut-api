@@ -3,25 +3,13 @@ from django.db import transaction
 
 from .models import Talent
 from .user_serializers import UserSerializer
-from .hire_event_serializers import HireEventSerializer
-from .resume_serializers import (SexSerializer, ExpertiseSerializer,
-                                 AddressSerializer, MaritalStatusSerializer, ResumeSerializer)
+from .recruiter_activity_serializers import RecruiterActivityWithEventSerializer
+from .resume_serializers import ResumeDetailSerializer
+from .other_serializers import TalentDescriptiveSerializer
 
 
 # The serializer is used in views
-class TalentListSerializer(serializers.ModelSerializer):
-    # one to one relationship
-    user = UserSerializer(required=True)
-    # many to many relationship
-    expertises = ExpertiseSerializer(many=True, read_only=True)
-    # one to many relationship
-    addresses = AddressSerializer(source='address_set', many=True)
-    # many to one relationship
-    sex = SexSerializer()
-    # many to one relationship
-    marital_status = MaritalStatusSerializer()
-    # one to many relationship
-    hire_events = HireEventSerializer(source='hireevent_set', many=True)
+class TalentListSerializer(TalentDescriptiveSerializer):
 
     class Meta:
         model = Talent
@@ -29,21 +17,12 @@ class TalentListSerializer(serializers.ModelSerializer):
 
 
 # The serializer is used in views
-class TalentDetailSerializer(serializers.ModelSerializer):
-    # one to one relationship
-    user = UserSerializer(required=True)
-    # many to many relationship
-    expertises = ExpertiseSerializer(many=True, read_only=True)
+class TalentDetailSerializer(TalentDescriptiveSerializer):
+
     # one to many relationship
-    addresses = AddressSerializer(source='address_set', many=True)
-    # many to one relationship
-    sex = SexSerializer()
-    # many to one relationship
-    marital_status = MaritalStatusSerializer()
-    # one to many relationship
-    hire_events = HireEventSerializer(source='hireevent_set', many=True)
+    recruiter_activities = RecruiterActivityWithEventSerializer(many=True)
     # one to one relationship
-    resume = ResumeSerializer()
+    resume = ResumeDetailSerializer()
 
     class Meta:
         model = Talent
@@ -51,7 +30,7 @@ class TalentDetailSerializer(serializers.ModelSerializer):
 
 
 # The serializer is used in other serializers
-class TalentSerializer(serializers.ModelSerializer):
+class TalentCreateSerializer(serializers.ModelSerializer):
     # one to one relationship
     user = UserSerializer(required=True)
 
@@ -75,6 +54,16 @@ class TalentSerializer(serializers.ModelSerializer):
                 talent.expertises.add(expertise)
 
             return talent
+
+
+# The serializer is used in other serializers
+class TalentUpdateSerializer(serializers.ModelSerializer):
+    # one to one relationship
+    user = UserSerializer(required=True)
+
+    class Meta:
+        model = Talent
+        fields = '__all__'
 
     def update(self, instance, validated_data):
         with transaction.atomic():

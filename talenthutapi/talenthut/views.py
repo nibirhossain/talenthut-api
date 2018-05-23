@@ -7,21 +7,22 @@ from django.contrib.auth.models import User
 
 from .models import Talent, Address, Expertise, Resume
 from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
-from .models import Recruiter, HireEvent, HireEventType
+from .models import Recruiter, RecruiterActivity, RecruiterEvent
 
-from .resume_serializers import HireEventTypeSerializer, ExpertiseSerializer
-from .hire_event_serializers import HireEventListAndDetailSerializer
-from .resume_serializers import AddressSerializer, JobExperienceSerializer
+from .recruiter_activity_serializers import RecruiterActivityDetailSerializer, RecruiterActivityMiniSerializer
+from .resume_serializers import JobExperienceSerializer
 from .resume_serializers import TechnicalSkillSerializer, EducationSerializer, LanguageSkillSerializer
-from .resume_serializers import ResumeSerializer
+from .resume_serializers import ResumeMiniSerializer
 from .user_serializers import UserSerializer
-from .talent_serializers import TalentListSerializer, TalentSerializer
+from .talent_serializers import (TalentListSerializer, TalentDetailSerializer,
+                                 TalentCreateSerializer, TalentUpdateSerializer)
 from .recruiter_serializers import RecruiterSerializer, RecruiterCreateSerializer, RecruiterUpdateSerializer
+from .other_serializers import RecruiterEventSerializer, ExpertiseSerializer, AddressSerializer
 
 
 class UserList(APIView):
     """
-    List all talents by recruiter using hire event type.
+    List all users or create a user instance
     """
     def get(self, request):
         users = User.objects.all().order_by('first_name', 'last_name')
@@ -38,9 +39,8 @@ class UserList(APIView):
 
 class UserDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a user instance
     """
-
     def get_object(self, pk):
         try:
             return User.objects.get(pk=pk)
@@ -78,16 +78,15 @@ class UserDetail(APIView):
 
 class TalentList(APIView):
     """
-    List all talents or create a new talent.
+    List all talents or create a new talent instance
     """
-
     def get(self, request):
         talents = Talent.objects.all()
-        serializer = TalentSerializer(talents, many=True)
+        serializer = TalentListSerializer(talents, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = TalentSerializer(data=request.data)
+        serializer = TalentCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -125,47 +124,42 @@ class TalentListByRecruiter(APIView):
 """
 
 
-class TalentListByRecruiter(APIView):
+class RecruiterActivityList(APIView):
     """
-    List all talents by recruiter.
+    List all recruiter activities along with talent information
     """
-
     def get(self, request, recruiter_pk):
 
         # distinct is not supported on sqlite3 database
-        # hire_events = HireEvent.objects.filter(recruiter=recruiter_pk) \
-        # .order_by('talent__user__firstname', 'talent__user__lastname', 'talent__id', '-event_time') \
-        #     .distinct('talent__fuser__irstname', 'talent__user__lastname', 'talent__id')
+        # recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk) \
+        # .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time') \
+        #     .distinct('talent__user__first_name', 'talent__user__last_name', 'talent__id')
 
         # since sqlite3 does not support the distinct property, talents could be duplicated. Fix it later.
-        hire_events = HireEvent.objects.filter(recruiter=recruiter_pk) \
-        .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time')
 
-        talents = [hire_event.talent for hire_event in hire_events]
-        serializer = TalentListSerializer(talents, many=True)
+        recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk) \
+            .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time')
+        serializer = RecruiterActivityDetailSerializer(recruiter_activities, many=True)
 
         return Response(serializer.data)
 
 
-class TalentListByRecruiterUsingHireEventType(APIView):
+class RecruiterActivityListByRecruiterEvent(APIView):
     """
-    List all talents by recruiter using hire event type.
+    List all recruiter activities by recruiter event along with talent information
     """
-    def get(self, request, recruiter_pk, event_type_pk):
-        hire_events = HireEvent.objects.filter(recruiter=recruiter_pk, hire_event_type_id=event_type_pk) \
-            .order_by('talent__user__first_name', 'talent__user__last_name')
-
-        talents = [hire_event.talent for hire_event in hire_events]
-        serializer = TalentListSerializer(talents, many=True)
+    def get(self, request, recruiter_pk, recruiter_event_pk):
+        recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk, recruiter_event_id=recruiter_event_pk) \
+            .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id')
+        serializer = RecruiterActivityDetailSerializer(recruiter_activities, many=True)
 
         return Response(serializer.data)
 
 
 class TalentDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a talent instance.
     """
-
     def get_object(self, pk):
         try:
             return Talent.objects.get(pk=pk)
@@ -174,12 +168,12 @@ class TalentDetail(APIView):
 
     def get(self, request, pk):
         talent = self.get_object(pk)
-        serializer = TalentSerializer(talent)
+        serializer = TalentDetailSerializer(talent)
         return Response(serializer.data)
 
     def put(self, request, pk):
         talent = self.get_object(pk)
-        serializer = TalentSerializer(talent, data=request.data)
+        serializer = TalentUpdateSerializer(talent, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -201,51 +195,38 @@ class TalentDetail(APIView):
 """
 
 
-class HireEventList(APIView):
+# TODO : name has to be adjusted later on
+class RecruiterActivities(APIView):
     """
-    List all hire event type, or create a new hire event type.
+    List all recruiters' activities, or create a new recruiter activity
     """
     def get(self, request):
-        hire_events = HireEvent.objects.all()
-        serializer = HireEventListAndDetailSerializer(hire_events, many=True)
+        recruiter_activities = RecruiterActivity.objects.all()
+        serializer = RecruiterActivityMiniSerializer(recruiter_activities, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = HireEventListAndDetailSerializer(data=request.data)
+        serializer = RecruiterActivityMiniSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class HireEventDetail(APIView):
+class RecruiterActivityDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a recruiter activity instance.
     """
-
     def get_object(self, pk):
         try:
-            return HireEvent.objects.get(pk=pk)
-        except HireEvent.DoesNotExist:
+            return RecruiterActivity.objects.get(pk=pk)
+        except RecruiterActivity.DoesNotExist:
             raise Http404
 
     def get(self, request, pk):
-        hire_event = self.get_object(pk)
-        serializer = HireEventListAndDetailSerializer(hire_event)
+        recruiter_activity = self.get_object(pk)
+        serializer = RecruiterActivityMiniSerializer(recruiter_activity)
         return Response(serializer.data)
-
-    def put(self, request, pk):
-        hire_event = self.get_object(pk)
-        serializer = HireEventListAndDetailSerializer(hire_event, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        hire_event = self.get_object(pk)
-        hire_event.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 """
@@ -258,50 +239,49 @@ class HireEventDetail(APIView):
 """
 
 
-class HireEventTypeList(APIView):
+class RecruiterEventList(APIView):
     """
     List all hire event type, or create a new hire event type.
     """
     def get(self, request):
-        hire_event_types = HireEventType.objects.all()
-        serializer = HireEventTypeSerializer(hire_event_types, many=True)
+        recruiter_events = RecruiterEvent.objects.all()
+        serializer = RecruiterEventSerializer(recruiter_events, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = HireEventTypeSerializer(data=request.data)
+        serializer = RecruiterEventSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class HireEventTypeDetail(APIView):
+class RecruiterEventDetail(APIView):
     """
     Retrieve, update or delete a snippet instance.
     """
-
     def get_object(self, pk):
         try:
-            return HireEventType.objects.get(pk=pk)
-        except HireEventType.DoesNotExist:
+            return RecruiterEvent.objects.get(pk=pk)
+        except RecruiterEvent.DoesNotExist:
             raise Http404
 
     def get(self, request, pk):
-        hire_event_type = self.get_object(pk)
-        serializer = HireEventTypeSerializer(hire_event_type)
+        recruiter_event = self.get_object(pk)
+        serializer = RecruiterEventSerializer(recruiter_event)
         return Response(serializer.data)
 
     def put(self, request, pk):
-        hire_event_type = self.get_object(pk)
-        serializer = HireEventTypeSerializer(hire_event_type, data=request.data)
+        recruiter_event = self.get_object(pk)
+        serializer = RecruiterEventSerializer(recruiter_event, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        hire_event_type = self.get_object(pk)
-        hire_event_type.delete()
+        recruiter_event = self.get_object(pk)
+        recruiter_event.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -317,16 +297,15 @@ class HireEventTypeDetail(APIView):
 
 class ResumeList(APIView):
     """
-    List all hire event type, or create a new hire event type.
+    List all resumes, or create a new resume instance
     """
-
     def get(self, request):
         resumes = Resume.objects.all()
-        serializer = ResumeSerializer(resumes, many=True)
+        serializer = ResumeMiniSerializer(resumes, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = ResumeSerializer(data=request.data)
+        serializer = ResumeMiniSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -335,9 +314,8 @@ class ResumeList(APIView):
 
 class ResumeDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a resume instance
     """
-
     def get_object(self, pk):
         try:
             return Resume.objects.get(pk=pk)
@@ -346,12 +324,12 @@ class ResumeDetail(APIView):
 
     def get(self, request, pk):
         resume = self.get_object(pk)
-        serializer = ResumeSerializer(resume)
+        serializer = ResumeMiniSerializer(resume)
         return Response(serializer.data)
 
     def put(self, request, pk):
         resume = self.get_object(pk)
-        serializer = ResumeSerializer(resume, data=request.data)
+        serializer = ResumeMiniSerializer(resume, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -375,9 +353,8 @@ class ResumeDetail(APIView):
 
 class JobExperienceList(APIView):
     """
-    List all hire event type, or create a new hire event type.
+    List all job experiences, or create a new job experience instance
     """
-
     def get(self, request):
         job_experiences = JobExperience.objects.all()
         serializer = JobExperienceSerializer(job_experiences, many=True)
@@ -393,9 +370,8 @@ class JobExperienceList(APIView):
 
 class JobExperienceDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a job experience instance
     """
-
     def get_object(self, pk):
         try:
             return JobExperience.objects.get(pk=pk)
@@ -433,9 +409,8 @@ class JobExperienceDetail(APIView):
 
 class TechnicalSkillList(APIView):
     """
-    List all hire event type, or create a new hire event type.
+    List all technical skills, or create a new technical skill instance
     """
-
     def get(self, request):
         technical_skills = TechnicalSkill.objects.all()
         serializer = TechnicalSkillSerializer(technical_skills, many=True)
@@ -451,9 +426,8 @@ class TechnicalSkillList(APIView):
 
 class TechnicalSkillDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a technical skill instance
     """
-
     def get_object(self, pk):
         try:
             return TechnicalSkill.objects.get(pk=pk)
@@ -490,9 +464,8 @@ class TechnicalSkillDetail(APIView):
 
 class EducationList(APIView):
     """
-    List all hire event type, or create a new hire event type.
+    List all educations, or create a new education instance
     """
-
     def get(self, request):
         educations = Education.objects.all()
         serializer = EducationSerializer(educations, many=True)
@@ -508,9 +481,8 @@ class EducationList(APIView):
 
 class EducationDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete an education instance
     """
-
     def get_object(self, pk):
         try:
             return Education.objects.get(pk=pk)
@@ -547,9 +519,8 @@ class EducationDetail(APIView):
 
 class LanguageSkillList(APIView):
     """
-    List all hire event type, or create a new hire event type.
+    List all language skills, or create a new language skill instance
     """
-
     def get(self, request):
         language_skills = LanguageSkill.objects.all()
         serializer = LanguageSkillSerializer(language_skills, many=True)
@@ -565,9 +536,8 @@ class LanguageSkillList(APIView):
 
 class LanguageSkillDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a language skill instance
     """
-
     def get_object(self, pk):
         try:
             return LanguageSkill.objects.get(pk=pk)
@@ -604,9 +574,8 @@ class LanguageSkillDetail(APIView):
 
 class AddressList(APIView):
     """
-    List all hire event type, or create a new hire event type.
+    List all addresses, or create a new address instance
     """
-
     def get(self, request):
         addresses = Address.objects.all()
         serializer = AddressSerializer(addresses, many=True)
@@ -622,9 +591,8 @@ class AddressList(APIView):
 
 class AddressDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete an address instance
     """
-
     def get_object(self, pk):
         try:
             return Address.objects.get(pk=pk)
@@ -662,9 +630,8 @@ class AddressDetail(APIView):
 
 class ExpertiseList(APIView):
     """
-    List all hire event type, or create a new hire event type.
+    List all expertises, or create a new expertise instance
     """
-
     def get(self, request):
         expertises = Expertise.objects.all()
         serializer = ExpertiseSerializer(expertises, many=True)
@@ -680,9 +647,8 @@ class ExpertiseList(APIView):
 
 class ExpertiseDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete an expertise instance
     """
-
     def get_object(self, pk):
         try:
             return Expertise.objects.get(pk=pk)
@@ -691,7 +657,7 @@ class ExpertiseDetail(APIView):
 
     def get(self, request, pk):
         expertise = self.get_object(pk)
-        serializer = HireEventTypeSerializer(expertise)
+        serializer = ExpertiseSerializer(expertise)
         return Response(serializer.data)
 
     def put(self, request, pk):
@@ -720,7 +686,7 @@ class ExpertiseDetail(APIView):
 
 class RecruiterList(APIView):
     """
-    List all hire event type, or create a new hire event type.
+    List all recruiters, or create a new recruiter instance
     """
     def get(self, request):
         recruiters = Recruiter.objects.all()
@@ -737,9 +703,8 @@ class RecruiterList(APIView):
 
 class RecruiterDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a recruiter instance.
     """
-
     def get_object(self, pk):
         try:
             return Recruiter.objects.get(pk=pk)

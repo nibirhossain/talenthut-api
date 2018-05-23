@@ -5,7 +5,7 @@ from django.utils import timezone
 
 # Here models are created for talenthut system
 class Sex(models.Model):
-    gender = models.CharField(max_length=10, default='')
+    gender = models.CharField(max_length=10)
 
     class Meta:
         verbose_name = 'Sex'
@@ -16,7 +16,7 @@ class Sex(models.Model):
 
 
 class MaritalStatus(models.Model):
-    status = models.CharField(max_length=20, default='')
+    status = models.CharField(max_length=20)
 
     class Meta:
         verbose_name = 'Marital Status'
@@ -51,7 +51,7 @@ class Expertise(models.Model):
 
 
 class Address(models.Model):
-    talent = models.ForeignKey(Talent, on_delete=models.CASCADE)
+    talent = models.ForeignKey(Talent, related_name='addresses', on_delete=models.CASCADE)
     city = models.CharField(max_length=100)
 
     class Meta:
@@ -75,7 +75,7 @@ class Resume(models.Model):
 
 
 class JobExperience(models.Model):
-    resume = models.ForeignKey(Resume, on_delete=models.CASCADE)
+    resume = models.ForeignKey(Resume, related_name='job_experiences', on_delete=models.CASCADE)
     start_date = models.DateField(blank=True, null=True, verbose_name='Start Date')
     end_date = models.DateField(blank=True, null=True, verbose_name='End Date')
     position = models.CharField(max_length=50)
@@ -92,7 +92,7 @@ class JobExperience(models.Model):
 
 
 class Education(models.Model):
-    resume = models.ForeignKey(Resume, on_delete=models.CASCADE)
+    resume = models.ForeignKey(Resume, related_name='educations', on_delete=models.CASCADE)
     start_date = models.DateField(blank=True, null=True, verbose_name='Start Date')
     completion_date = models.DateField(blank=True, null=True, verbose_name='Completion Date')
     graduation = models.CharField(max_length=50, verbose_name='Graduation')
@@ -101,7 +101,7 @@ class Education(models.Model):
 
     class Meta:
         verbose_name = 'Education'
-        verbose_name_plural = 'Education'
+        verbose_name_plural = 'Educations'
         ordering = ['-start_date']
 
     def __str__(self):
@@ -109,7 +109,7 @@ class Education(models.Model):
 
 
 class TechnicalSkill(models.Model):
-    resume = models.ForeignKey(Resume, on_delete=models.CASCADE)
+    resume = models.ForeignKey(Resume, related_name='technical_skills', on_delete=models.CASCADE)
     skill_title = models.CharField(max_length=100, null=True, verbose_name='Skill Title')
     skill_list = models.CharField(max_length=100, null=True, verbose_name='List of Skills')
 
@@ -123,7 +123,7 @@ class TechnicalSkill(models.Model):
 
 
 class LanguageSkill(models.Model):
-    resume = models.ForeignKey(Resume, on_delete=models.CASCADE)
+    resume = models.ForeignKey(Resume, related_name='language_skills', on_delete=models.CASCADE)
     name = models.CharField(max_length=50, null=True, verbose_name='Language Name')
     skill_level = models.CharField(max_length=50, verbose_name='Skill Level')
 
@@ -151,32 +151,33 @@ class Recruiter(models.Model):
         return self.user.first_name + ' ' + self.user.last_name
 
 
-class HireEvent(models.Model):
+# RecruiterActivity
+class RecruiterActivity(models.Model):
     recruiter = models.ForeignKey(Recruiter, on_delete=models.CASCADE)
-    talent = models.ForeignKey(Talent, on_delete=models.CASCADE)
-    hire_event_type = models.ForeignKey('HireEventType', on_delete=models.CASCADE)
+    talent = models.ForeignKey(Talent, related_name='recruiter_activities', on_delete=models.CASCADE)
+    recruiter_event = models.ForeignKey('RecruiterEvent', on_delete=models.CASCADE)
     event_time = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        verbose_name = 'Hire Event'
-        verbose_name_plural = 'Hire Events'
-        # ordering = ['-event_time']
+        verbose_name = 'Recruiter Activity'
+        verbose_name_plural = 'Recruiter Activities'
         ordering = ['talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time']
-        unique_together = ['recruiter', 'talent', 'hire_event_type']
+        unique_together = ['recruiter', 'talent', 'recruiter_event']
 
     def __str__(self):
-        return 'HireEvent id ' + str(self.hire_event_type.id)
+        return 'Recruiter Activity ID ' + str(self.recruiter_event.id)
 
 
-class HireEventType(models.Model):
+# RecruiterEvent
+class RecruiterEvent(models.Model):
     name = models.CharField(max_length=30, unique=True, default='')
     message = models.CharField(max_length=300, default='')
     icon = models.ImageField(upload_to="static/img/", default='')
     description = models.CharField(max_length=30, default='')
 
     class Meta:
-        verbose_name = 'Hire Event Type'
-        verbose_name_plural = 'Hire Event Types'
+        verbose_name = 'Recruiter Event'
+        verbose_name_plural = 'Recruiter Events'
 
     def __str__(self):
         return self.name

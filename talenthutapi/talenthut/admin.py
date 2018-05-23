@@ -1,4 +1,4 @@
-'''
+"""
 from django.contrib import admin
 import nested_admin
 
@@ -73,14 +73,15 @@ admin.site.unregister(User)
 admin.site.register(User, RecruiterAdmin)
 admin.site.register(HireEvent)
 admin.site.register(HireEventType)
-'''
+"""
 
+# django framework specific
 from django.contrib import admin
 
-
+# project specific
 from .models import Talent, Address, Expertise, Resume
 from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
-from .models import Recruiter, HireEvent, HireEventType, Sex, MaritalStatus
+from .models import Recruiter, RecruiterActivity, RecruiterEvent, Sex, MaritalStatus
 
 admin.site.register(Sex)
 admin.site.register(MaritalStatus)
@@ -93,7 +94,7 @@ admin.site.register(TechnicalSkill)
 admin.site.register(Education)
 admin.site.register(LanguageSkill)
 
-#admin.site.unregister(User)
+# admin.site.unregister(User)
 admin.site.register(Recruiter)
-admin.site.register(HireEvent)
-admin.site.register(HireEventType)
+admin.site.register(RecruiterActivity)
+admin.site.register(RecruiterEvent)

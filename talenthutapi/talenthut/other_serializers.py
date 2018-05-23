@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
-from .models import Address, Expertise
+from .models import Address, Expertise, Talent
 from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
-from .models import HireEvent, HireEventType, Sex, MaritalStatus
+from .models import RecruiterEvent, Sex, MaritalStatus
+
+from .user_serializers import UserSerializer
 
 
 # The serializer is used in other serializers and in views
@@ -48,10 +50,10 @@ class LanguageSkillSerializer(serializers.ModelSerializer):
 
 
 # The serializer is used in other serializers and in views
-class HireEventTypeSerializer(serializers.ModelSerializer):
+class RecruiterEventSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = HireEventType
+        model = RecruiterEvent
         fields = '__all__'
 
 
@@ -70,3 +72,34 @@ class MaritalStatusSerializer(serializers.ModelSerializer):
         model = MaritalStatus
         fields = '__all__'
 
+
+# The serializer is used in views
+class TalentMiniSerializer(serializers.ModelSerializer):
+
+    # one to one relationship
+    user = UserSerializer(required=True)
+    # many to many relationship
+    expertises = ExpertiseSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Talent
+        fields = '__all__'
+
+
+# The serializer is used in views
+class TalentDescriptiveSerializer(serializers.ModelSerializer):
+
+    # one to one relationship
+    user = UserSerializer(required=True)
+    # many to many relationship
+    expertises = ExpertiseSerializer(many=True, read_only=True)
+    # one to many relationship
+    addresses = AddressSerializer(many=True)
+    # many to one relationship
+    sex = SexSerializer()
+    # many to one relationship
+    marital_status = MaritalStatusSerializer()
+
+    class Meta:
+        model = Talent
+        fields = '__all__'
