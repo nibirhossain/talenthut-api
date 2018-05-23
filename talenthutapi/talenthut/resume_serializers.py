@@ -5,14 +5,14 @@ from .other_serializers import (JobExperienceSerializer, TechnicalSkillSerialize
                                 LanguageSkillSerializer, EducationSerializer)
 
 
-# The serializer is used in other serializers and in views
+# The serializer used to list resumes with minimal fields
 class ResumeMiniSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resume
         fields = '__all__'
 
 
-# The serializer is used in other serializers and in views
+# The serializer used to list resumes with all fields
 class ResumeDetailSerializer(serializers.ModelSerializer):
     # foreign key / one to many relationship
     job_experiences = JobExperienceSerializer(many=True, required=False)

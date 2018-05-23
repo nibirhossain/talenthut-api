@@ -9,7 +9,7 @@ from .models import Recruiter
 from .user_serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer
 
 
-# handle recruiter related exceptions
+# The custom validator handles recruiter related exceptions
 class RecruiterCustomValidation(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = 'A server error occurred.'

@@ -9,7 +9,9 @@ from .models import Talent, Address, Expertise, Resume
 from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
 from .models import Recruiter, RecruiterActivity, RecruiterEvent
 
-from .recruiter_activity_serializers import RecruiterActivityDetailSerializer, RecruiterActivityMiniSerializer
+from .recruiter_activity_serializers import (RecruiterActivityDetailSerializer, RecruiterActivityMiniSerializer,
+                                             RecruiterActivityUpdateSerializer, RecruiterActivityCreateSerializer,
+                                             RecruiterActivityHistoryCreateSerializer)
 from .resume_serializers import JobExperienceSerializer
 from .resume_serializers import TechnicalSkillSerializer, EducationSerializer, LanguageSkillSerializer
 from .resume_serializers import ResumeMiniSerializer
@@ -195,7 +197,7 @@ class TalentDetail(APIView):
 """
 
 
-# TODO : name has to be adjusted later on
+# TODO : name has to be adjusted later
 class RecruiterActivities(APIView):
     """
     List all recruiters' activities, or create a new recruiter activity
@@ -206,7 +208,7 @@ class RecruiterActivities(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = RecruiterActivityMiniSerializer(data=request.data)
+        serializer = RecruiterActivityCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -225,8 +227,16 @@ class RecruiterActivityDetail(APIView):
 
     def get(self, request, pk):
         recruiter_activity = self.get_object(pk)
-        serializer = RecruiterActivityMiniSerializer(recruiter_activity)
+        serializer = RecruiterActivityCreateSerializer(recruiter_activity)
         return Response(serializer.data)
+
+    def put(self, request, pk):
+        recruiter_activity = self.get_object(pk)
+        serializer = RecruiterActivityUpdateSerializer(recruiter_activity, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 """
@@ -722,6 +732,7 @@ class RecruiterDetail(APIView):
         serializer = RecruiterUpdateSerializer(recruiter, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

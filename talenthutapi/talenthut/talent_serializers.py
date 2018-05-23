@@ -8,7 +8,7 @@ from .resume_serializers import ResumeDetailSerializer
 from .other_serializers import TalentDescriptiveSerializer
 
 
-# The serializer is used in views
+# The serializer used to list talents
 class TalentListSerializer(TalentDescriptiveSerializer):
 
     class Meta:
@@ -16,7 +16,7 @@ class TalentListSerializer(TalentDescriptiveSerializer):
         fields = '__all__'
 
 
-# The serializer is used in views
+# The serializer used to list talent with all fields
 class TalentDetailSerializer(TalentDescriptiveSerializer):
 
     # one to many relationship
@@ -29,7 +29,7 @@ class TalentDetailSerializer(TalentDescriptiveSerializer):
         fields = '__all__'
 
 
-# The serializer is used in other serializers
+# The serializer used to create a talent instance
 class TalentCreateSerializer(serializers.ModelSerializer):
     # one to one relationship
     user = UserSerializer(required=True)
@@ -56,7 +56,7 @@ class TalentCreateSerializer(serializers.ModelSerializer):
             return talent
 
 
-# The serializer is used in other serializers
+# The serializer used to update a specific talent instance
 class TalentUpdateSerializer(serializers.ModelSerializer):
     # one to one relationship
     user = UserSerializer(required=True)

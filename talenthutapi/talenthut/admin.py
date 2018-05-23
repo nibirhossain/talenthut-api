@@ -80,7 +80,7 @@ from django.contrib import admin
 
 # project specific
 from .models import Talent, Address, Expertise, Resume
-from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
+from .models import JobExperience, TechnicalSkill, Education, LanguageSkill, RecruiterActivityHistory
 from .models import Recruiter, RecruiterActivity, RecruiterEvent, Sex, MaritalStatus
 
 admin.site.register(Sex)
@@ -97,4 +97,5 @@ admin.site.register(LanguageSkill)
 # admin.site.unregister(User)
 admin.site.register(Recruiter)
 admin.site.register(RecruiterActivity)
+admin.site.register(RecruiterActivityHistory)
 admin.site.register(RecruiterEvent)

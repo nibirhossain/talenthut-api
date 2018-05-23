@@ -22,7 +22,7 @@ class UserCustomValidation(APIException):
 """
 
 
-# handle user related exceptions
+# This custom validator handles user related exceptions
 class UserCustomValidation(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = 'A server error occurred.'
@@ -46,7 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'first_name', 'last_name', 'email')
 
 
-# The serializer used to create user
+# The serializer used to create a user instance
 class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -62,7 +62,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
         with transaction.atomic():
             try:
-                # create use
+                # create user
                 user = User(
                     email=email,
                     username=username,

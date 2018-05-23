@@ -135,7 +135,6 @@ class LanguageSkill(models.Model):
         return self.name
 
 
-# Here models are created for Recruiter
 class Recruiter(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     company_name = models.CharField(max_length=50)
@@ -151,12 +150,12 @@ class Recruiter(models.Model):
         return self.user.first_name + ' ' + self.user.last_name
 
 
-# RecruiterActivity
 class RecruiterActivity(models.Model):
     recruiter = models.ForeignKey(Recruiter, on_delete=models.CASCADE)
     talent = models.ForeignKey(Talent, related_name='recruiter_activities', on_delete=models.CASCADE)
     recruiter_event = models.ForeignKey('RecruiterEvent', on_delete=models.CASCADE)
     event_time = models.DateTimeField(default=timezone.now)
+    is_unchanged = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = 'Recruiter Activity'
@@ -165,10 +164,25 @@ class RecruiterActivity(models.Model):
         unique_together = ['recruiter', 'talent', 'recruiter_event']
 
     def __str__(self):
-        return 'Recruiter Activity ID ' + str(self.recruiter_event.id)
+        return 'Recruiter Activity ID ' + str(self.recruiter_event.id) + ': ' + str(self.recruiter_event.name)
 
 
-# RecruiterEvent
+class RecruiterActivityHistory(models.Model):
+    recruiter = models.ForeignKey(Recruiter, on_delete=models.CASCADE)
+    talent = models.ForeignKey(Talent, related_name='recruiter_activity_histories', on_delete=models.CASCADE)
+    recruiter_event = models.ForeignKey('RecruiterEvent', on_delete=models.CASCADE)
+    event_time = models.DateTimeField(default=timezone.now)
+    is_unchanged = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Recruiter Activity History'
+        verbose_name_plural = 'Recruiter Activity Histories'
+        ordering = ['talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time']
+
+    def __str__(self):
+        return 'Recruiter Activity ID ' + str(self.recruiter_event.id) + ': ' + str(self.recruiter_event.name)
+
+
 class RecruiterEvent(models.Model):
     name = models.CharField(max_length=30, unique=True, default='')
     message = models.CharField(max_length=300, default='')
