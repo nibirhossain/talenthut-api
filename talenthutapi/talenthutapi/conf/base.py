@@ -25,7 +25,10 @@ SECRET_KEY = 'z4kx10v+y)&&gag6t&%@5jhok))ve3ud5hx6lv3cw9t)z^b1h0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'sheltered-mountain-12507.herokuapp.com',
+    'localhost',
+]
 
 
 # Application definition
