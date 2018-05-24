@@ -24,7 +24,7 @@ DATABASES = {
     }
 }
 """
-
+"""
 # PostgreSQL setup
 DATABASES = {
     'default': {
@@ -42,6 +42,5 @@ DATABASES = {
 import dj_database_url
 # DATABASES['default'] =  dj_database_url.config()
 #updated
-DATABASES = {'default': dj_database_url.config(default='postgres://hwuztopkwbvgqm:75515684c3efee160c5f86f257fcb9fa0fe24ee086c475583878aa3b27f3813b@ec2-23-21-164-107.compute-1.amazonaws.com:5432/dfkujtbrsdnamt')}
-"""
+DATABASES = {'default': dj_database_url.config(default='postgres://tqymekcgypeijm:981fcc8757b274dd5ff578748f624260257c501096abd837eabd17944e15c892@ec2-54-235-206-118.compute-1.amazonaws.com:5432/d50nehm70slrnm')}
 
