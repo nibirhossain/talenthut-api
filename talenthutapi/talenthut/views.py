@@ -10,8 +10,7 @@ from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
 from .models import Recruiter, RecruiterActivity, RecruiterEvent
 
 from .recruiter_activity_serializers import (RecruiterActivityDetailSerializer, RecruiterActivityMiniSerializer,
-                                             RecruiterActivityUpdateSerializer, RecruiterActivityCreateSerializer,
-                                             RecruiterActivityHistoryCreateSerializer)
+                                             RecruiterActivityUpdateSerializer, RecruiterActivityCreateSerializer)
 from .resume_serializers import JobExperienceSerializer
 from .resume_serializers import TechnicalSkillSerializer, EducationSerializer, LanguageSkillSerializer
 from .resume_serializers import ResumeMiniSerializer
@@ -22,16 +21,26 @@ from .recruiter_serializers import RecruiterSerializer, RecruiterCreateSerialize
 from .other_serializers import RecruiterEventSerializer, ExpertiseSerializer, AddressSerializer
 
 
-class UserList(APIView):
-    """
-    List all users or create a user instance
-    """
+class HomeView(APIView):
+
     def get(self, request):
+        return Response('Home Page of TalentHut REST APIs. Version 1.0.0')
+
+
+class UserList(APIView):
+
+    def get(self, request):
+        """
+        List all users
+        """
         users = User.objects.all().order_by('first_name', 'last_name')
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a user instance
+        """
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -40,9 +49,7 @@ class UserList(APIView):
 
 
 class UserDetail(APIView):
-    """
-    Retrieve, update or delete a user instance
-    """
+
     def get_object(self, pk):
         try:
             return User.objects.get(pk=pk)
@@ -50,11 +57,17 @@ class UserDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve a user instance
+        """
         user = self.get_object(pk)
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update a user instance
+        """
         user = self.get_object(pk)
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
@@ -62,10 +75,12 @@ class UserDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         user = self.get_object(pk)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """
@@ -79,15 +94,19 @@ class UserDetail(APIView):
 
 
 class TalentList(APIView):
-    """
-    List all talents or create a new talent instance
-    """
+
     def get(self, request):
+        """
+        List all talents
+        """
         talents = Talent.objects.all()
         serializer = TalentListSerializer(talents, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new talent instance
+        """
         serializer = TalentCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -96,11 +115,11 @@ class TalentList(APIView):
 
 
 class TalentListByExpertise(APIView):
-    """
-    List all talents by expertise.
-    """
 
     def get(self, request, expertise_pk):
+        """
+        List all talents by expertise.
+        """
         # talents = Talent.objects.filter(expertises__id=expertise_pk)
         talents = Talent.objects.filter(expertises=expertise_pk)
         serializer = TalentListSerializer(talents, many=True)
@@ -127,10 +146,11 @@ class TalentListByRecruiter(APIView):
 
 
 class RecruiterActivityList(APIView):
-    """
-    List all recruiter activities along with talent information
-    """
+
     def get(self, request, recruiter_pk):
+        """
+        List all recruiter activities along with talent information
+        """
 
         # distinct is not supported on sqlite3 database
         # recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk) \
@@ -140,17 +160,19 @@ class RecruiterActivityList(APIView):
         # since sqlite3 does not support the distinct property, talents could be duplicated. Fix it later.
 
         recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk) \
-            .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time')
+            .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time') \
+            .distinct('talent__user__first_name', 'talent__user__last_name', 'talent__id')
         serializer = RecruiterActivityDetailSerializer(recruiter_activities, many=True)
 
         return Response(serializer.data)
 
 
 class RecruiterActivityListByRecruiterEvent(APIView):
-    """
-    List all recruiter activities by recruiter event along with talent information
-    """
+
     def get(self, request, recruiter_pk, recruiter_event_pk):
+        """
+        List all recruiter activities by recruiter event along with talent information
+        """
         recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk, recruiter_event_id=recruiter_event_pk) \
             .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id')
         serializer = RecruiterActivityDetailSerializer(recruiter_activities, many=True)
@@ -159,9 +181,7 @@ class RecruiterActivityListByRecruiterEvent(APIView):
 
 
 class TalentDetail(APIView):
-    """
-    Retrieve, update or delete a talent instance.
-    """
+
     def get_object(self, pk):
         try:
             return Talent.objects.get(pk=pk)
@@ -169,11 +189,17 @@ class TalentDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve a talent instance.
+        """
         talent = self.get_object(pk)
         serializer = TalentDetailSerializer(talent)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update a talent instance.
+        """
         talent = self.get_object(pk)
         serializer = TalentUpdateSerializer(talent, data=request.data)
         if serializer.is_valid():
@@ -181,10 +207,12 @@ class TalentDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         talent = self.get_object(pk)
         talent.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """
@@ -199,15 +227,19 @@ class TalentDetail(APIView):
 
 # TODO : name has to be adjusted later
 class RecruiterActivities(APIView):
-    """
-    List all recruiters' activities, or create a new recruiter activity
-    """
+
     def get(self, request):
+        """
+        List all recruiters' activities
+        """
         recruiter_activities = RecruiterActivity.objects.all()
         serializer = RecruiterActivityMiniSerializer(recruiter_activities, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new recruiter activity
+        """
         serializer = RecruiterActivityCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -216,9 +248,7 @@ class RecruiterActivities(APIView):
 
 
 class RecruiterActivityDetail(APIView):
-    """
-    Retrieve, update or delete a recruiter activity instance.
-    """
+
     def get_object(self, pk):
         try:
             return RecruiterActivity.objects.get(pk=pk)
@@ -226,11 +256,17 @@ class RecruiterActivityDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve a recruiter activity instance.
+        """
         recruiter_activity = self.get_object(pk)
         serializer = RecruiterActivityCreateSerializer(recruiter_activity)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update a recruiter activity instance.
+        """
         recruiter_activity = self.get_object(pk)
         serializer = RecruiterActivityUpdateSerializer(recruiter_activity, data=request.data)
         if serializer.is_valid():
@@ -250,15 +286,19 @@ class RecruiterActivityDetail(APIView):
 
 
 class RecruiterEventList(APIView):
-    """
-    List all hire event type, or create a new hire event type.
-    """
+
     def get(self, request):
+        """
+        List all recruiter events.
+        """
         recruiter_events = RecruiterEvent.objects.all()
         serializer = RecruiterEventSerializer(recruiter_events, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new recruiter event.
+        """
         serializer = RecruiterEventSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -267,9 +307,7 @@ class RecruiterEventList(APIView):
 
 
 class RecruiterEventDetail(APIView):
-    """
-    Retrieve, update or delete a snippet instance.
-    """
+
     def get_object(self, pk):
         try:
             return RecruiterEvent.objects.get(pk=pk)
@@ -277,11 +315,17 @@ class RecruiterEventDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve recruiter event instance.
+        """
         recruiter_event = self.get_object(pk)
         serializer = RecruiterEventSerializer(recruiter_event)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update a recruiter event instance.
+        """
         recruiter_event = self.get_object(pk)
         serializer = RecruiterEventSerializer(recruiter_event, data=request.data)
         if serializer.is_valid():
@@ -289,11 +333,12 @@ class RecruiterEventDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         recruiter_event = self.get_object(pk)
         recruiter_event.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
+    """
 
 """
 ------------------- End : Implementation of HIRE_EVENT_TYPE model --------------------
@@ -306,15 +351,19 @@ class RecruiterEventDetail(APIView):
 
 
 class ResumeList(APIView):
-    """
-    List all resumes, or create a new resume instance
-    """
+
     def get(self, request):
+        """
+        List all resumes.
+        """
         resumes = Resume.objects.all()
         serializer = ResumeMiniSerializer(resumes, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new resume instance
+        """
         serializer = ResumeMiniSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -323,9 +372,7 @@ class ResumeList(APIView):
 
 
 class ResumeDetail(APIView):
-    """
-    Retrieve, update or delete a resume instance
-    """
+
     def get_object(self, pk):
         try:
             return Resume.objects.get(pk=pk)
@@ -333,11 +380,17 @@ class ResumeDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve a resume instance.
+        """
         resume = self.get_object(pk)
         serializer = ResumeMiniSerializer(resume)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update a resume instance
+        """
         resume = self.get_object(pk)
         serializer = ResumeMiniSerializer(resume, data=request.data)
         if serializer.is_valid():
@@ -345,10 +398,12 @@ class ResumeDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         resume = self.get_object(pk)
         resume.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """
@@ -362,15 +417,19 @@ class ResumeDetail(APIView):
 
 
 class JobExperienceList(APIView):
-    """
-    List all job experiences, or create a new job experience instance
-    """
+
     def get(self, request):
+        """
+        List all job experiences.
+        """
         job_experiences = JobExperience.objects.all()
         serializer = JobExperienceSerializer(job_experiences, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new job experience instance.
+        """
         serializer = JobExperienceSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -379,9 +438,7 @@ class JobExperienceList(APIView):
 
 
 class JobExperienceDetail(APIView):
-    """
-    Retrieve, update or delete a job experience instance
-    """
+
     def get_object(self, pk):
         try:
             return JobExperience.objects.get(pk=pk)
@@ -389,11 +446,17 @@ class JobExperienceDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve a job experience instance.
+        """
         job_experience = self.get_object(pk)
         serializer = JobExperienceSerializer(job_experience)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update a job experience instance
+        """
         job_experience = self.get_object(pk)
         serializer = JobExperienceSerializer(job_experience, data=request.data)
         if serializer.is_valid():
@@ -401,10 +464,12 @@ class JobExperienceDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         job_experience = self.get_object(pk)
         job_experience.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """
@@ -418,15 +483,19 @@ class JobExperienceDetail(APIView):
 
 
 class TechnicalSkillList(APIView):
-    """
-    List all technical skills, or create a new technical skill instance
-    """
+
     def get(self, request):
+        """
+        List all technical skills.
+        """
         technical_skills = TechnicalSkill.objects.all()
         serializer = TechnicalSkillSerializer(technical_skills, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new technical skill instance.
+        """
         serializer = TechnicalSkillSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -435,9 +504,7 @@ class TechnicalSkillList(APIView):
 
 
 class TechnicalSkillDetail(APIView):
-    """
-    Retrieve, update or delete a technical skill instance
-    """
+
     def get_object(self, pk):
         try:
             return TechnicalSkill.objects.get(pk=pk)
@@ -445,11 +512,17 @@ class TechnicalSkillDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve a technical skill instance.
+        """
         technical_skill = self.get_object(pk)
         serializer = TechnicalSkillSerializer(technical_skill)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update a technical skill instance
+        """
         technical_skill = self.get_object(pk)
         serializer = TechnicalSkillSerializer(technical_skill, data=request.data)
         if serializer.is_valid():
@@ -457,10 +530,12 @@ class TechnicalSkillDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         technical_skill = self.get_object(pk)
         technical_skill.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """
@@ -473,15 +548,19 @@ class TechnicalSkillDetail(APIView):
 
 
 class EducationList(APIView):
-    """
-    List all educations, or create a new education instance
-    """
+
     def get(self, request):
+        """
+        List all educations.
+        """
         educations = Education.objects.all()
         serializer = EducationSerializer(educations, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new education instance.
+        """
         serializer = EducationSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -490,9 +569,7 @@ class EducationList(APIView):
 
 
 class EducationDetail(APIView):
-    """
-    Retrieve, update or delete an education instance
-    """
+
     def get_object(self, pk):
         try:
             return Education.objects.get(pk=pk)
@@ -500,11 +577,17 @@ class EducationDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve an education instance.
+        """
         education = self.get_object(pk)
         serializer = EducationSerializer(education)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update an education instance
+        """
         education = self.get_object(pk)
         serializer = EducationSerializer(education, data=request.data)
         if serializer.is_valid():
@@ -512,10 +595,12 @@ class EducationDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         education = self.get_object(pk)
         education.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """
@@ -528,15 +613,19 @@ class EducationDetail(APIView):
 
 
 class LanguageSkillList(APIView):
-    """
-    List all language skills, or create a new language skill instance
-    """
+
     def get(self, request):
+        """
+        List all language skills.
+        """
         language_skills = LanguageSkill.objects.all()
         serializer = LanguageSkillSerializer(language_skills, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new language skill instance
+        """
         serializer = LanguageSkillSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -545,9 +634,7 @@ class LanguageSkillList(APIView):
 
 
 class LanguageSkillDetail(APIView):
-    """
-    Retrieve, update or delete a language skill instance
-    """
+
     def get_object(self, pk):
         try:
             return LanguageSkill.objects.get(pk=pk)
@@ -555,11 +642,17 @@ class LanguageSkillDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve a language skill instance.
+        """
         language_skill = self.get_object(pk)
         serializer = LanguageSkillSerializer(language_skill)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update a language skill instance.
+        """
         language_skill = self.get_object(pk)
         serializer = LanguageSkillSerializer(language_skill, data=request.data)
         if serializer.is_valid():
@@ -567,10 +660,12 @@ class LanguageSkillDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         language_skill = self.get_object(pk)
         language_skill.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """
@@ -583,15 +678,19 @@ class LanguageSkillDetail(APIView):
 
 
 class AddressList(APIView):
-    """
-    List all addresses, or create a new address instance
-    """
+
     def get(self, request):
+        """
+        List all addresses.
+        """
         addresses = Address.objects.all()
         serializer = AddressSerializer(addresses, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new address instance.
+        """
         serializer = AddressSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -600,9 +699,7 @@ class AddressList(APIView):
 
 
 class AddressDetail(APIView):
-    """
-    Retrieve, update or delete an address instance
-    """
+
     def get_object(self, pk):
         try:
             return Address.objects.get(pk=pk)
@@ -610,11 +707,17 @@ class AddressDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve an address instance.
+        """
         address = self.get_object(pk)
         serializer = AddressSerializer(address)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update an address instance.
+        """
         address = self.get_object(pk)
         serializer = AddressSerializer(address, data=request.data)
         if serializer.is_valid():
@@ -622,10 +725,12 @@ class AddressDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         address = self.get_object(pk)
         address.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """
@@ -639,15 +744,19 @@ class AddressDetail(APIView):
 
 
 class ExpertiseList(APIView):
-    """
-    List all expertises, or create a new expertise instance
-    """
+
     def get(self, request):
+        """
+        List all expertises.
+        """
         expertises = Expertise.objects.all()
         serializer = ExpertiseSerializer(expertises, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new expertise instance.
+        """
         serializer = ExpertiseSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -656,9 +765,7 @@ class ExpertiseList(APIView):
 
 
 class ExpertiseDetail(APIView):
-    """
-    Retrieve, update or delete an expertise instance
-    """
+
     def get_object(self, pk):
         try:
             return Expertise.objects.get(pk=pk)
@@ -666,11 +773,17 @@ class ExpertiseDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve an expertise instance.
+        """
         expertise = self.get_object(pk)
         serializer = ExpertiseSerializer(expertise)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update an expertise instance.
+        """
         expertise = self.get_object(pk)
         serializer = ExpertiseSerializer(expertise, data=request.data)
         if serializer.is_valid():
@@ -678,10 +791,12 @@ class ExpertiseDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         expertise = self.get_object(pk)
         expertise.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """
@@ -695,15 +810,19 @@ class ExpertiseDetail(APIView):
 
 
 class RecruiterList(APIView):
-    """
-    List all recruiters, or create a new recruiter instance
-    """
+
     def get(self, request):
+        """
+        List all recruiters.
+        """
         recruiters = Recruiter.objects.all()
         serializer = RecruiterSerializer(recruiters, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        """
+        Create a new recruiter instance.
+        """
         serializer = RecruiterCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -712,9 +831,7 @@ class RecruiterList(APIView):
 
 
 class RecruiterDetail(APIView):
-    """
-    Retrieve, update or delete a recruiter instance.
-    """
+
     def get_object(self, pk):
         try:
             return Recruiter.objects.get(pk=pk)
@@ -722,11 +839,17 @@ class RecruiterDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """
+        Retrieve a recruiter instance.
+        """
         recruiter = self.get_object(pk)
         serializer = RecruiterSerializer(recruiter)
         return Response(serializer.data)
 
     def put(self, request, pk):
+        """
+        Update a recruiter instance.
+        """
         recruiter = self.get_object(pk)
         # partial update possible e.g. only username or password can be updated
         serializer = RecruiterUpdateSerializer(recruiter, data=request.data, partial=True)
@@ -736,10 +859,12 @@ class RecruiterDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    """
     def delete(self, request, pk):
         recruiter = self.get_object(pk)
         recruiter.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    """
 
 
 """

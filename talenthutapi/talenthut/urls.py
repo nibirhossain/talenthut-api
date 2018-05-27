@@ -14,10 +14,12 @@ from .views import RecruiterList, RecruiterDetail
 from .views import TalentListByExpertise, RecruiterActivityList
 from .views import RecruiterActivityListByRecruiterEvent
 from .views import UserList, UserDetail
+from .views import HomeView
 
 app_name = 'talenthut'
 
 urlpatterns = [
+    path('', HomeView.as_view(), name='home'),
     path('recruiter-events/', RecruiterEventList.as_view(), name="recruiter_event_list"),
     path('recruiter-events/<pk>/', RecruiterEventDetail.as_view(), name="recruiter_event_detail"),
 
