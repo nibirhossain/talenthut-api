@@ -15,16 +15,18 @@ from .views import TalentListByExpertise, RecruiterActivityList
 from .views import RecruiterActivityListByRecruiterEvent
 from .views import UserList, UserDetail
 from .views import HomeView
+from .views import LoginView
 
 app_name = 'talenthut'
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
+    path('login/', LoginView.as_view(), name='login'),
     path('recruiter-events/', RecruiterEventList.as_view(), name="recruiter_event_list"),
     path('recruiter-events/<pk>/', RecruiterEventDetail.as_view(), name="recruiter_event_detail"),
 
-    # path('expertises/', ExpertiseList.as_view(), name="expertise_list"),
-    # path('expertises/<pk>/', ExpertiseDetail.as_view(), name="expertise_detail"),
+    path('expertises/', ExpertiseList.as_view(), name="expertise_list"),
+    path('expertises/<pk>/', ExpertiseDetail.as_view(), name="expertise_detail"),
 
     path('users/', UserList.as_view(), name="user_list"),
     path('users/<pk>/', UserDetail.as_view(), name="user_detail"),

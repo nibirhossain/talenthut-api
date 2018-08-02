@@ -8,6 +8,14 @@ from .resume_serializers import ResumeDetailSerializer
 from .other_serializers import TalentDescriptiveSerializer
 
 
+class TalentSerializer(serializers.ModelSerializer):
+    user = UserSerializer(required=True)
+
+    class Meta:
+        model = Talent
+        fields = ('id', 'user')
+
+
 # The serializer used to list talents
 class TalentListSerializer(TalentDescriptiveSerializer):
 

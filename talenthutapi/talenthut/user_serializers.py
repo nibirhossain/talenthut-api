@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from django.db import IntegrityError
 from rest_framework.exceptions import APIException
+from rest_framework.authtoken.models import Token
 from django.utils.encoding import force_text
 from rest_framework import status
 from django.contrib.auth.models import User
 from django.db import transaction
+
 
 
 """
@@ -71,8 +73,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
                 )
                 user.set_password(validated_data['password'])
                 user.save()
-
+                Token.objects.create(user=user)
                 return user
+
             except IntegrityError:
                 # create a dictionary and send all fields to check for which one gets exception
                 field_dict = {'username': username, 'first_name': first_name, 'last_name': last_name, 'email': email}

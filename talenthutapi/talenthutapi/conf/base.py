@@ -45,12 +45,19 @@ INSTALLED_APPS = [
     # django rest framework specific
     'rest_framework',
     'rest_framework_swagger',
+    'rest_framework.authtoken',
 
     # project specific
     'talenthut.apps.TalenthutConfig',
 
 
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ]
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
