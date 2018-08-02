@@ -23,7 +23,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-"""
 
 # PostgreSQL setup
 DATABASES = {
@@ -41,7 +40,5 @@ DATABASES = {
 # Parse database configuration from $DATABASE_URL
 import dj_database_url
 # DATABASES['default'] =  dj_database_url.config()
-#updated
+# updated
 DATABASES = {'default': dj_database_url.config(default='postgres://tqymekcgypeijm:981fcc8757b274dd5ff578748f624260257c501096abd837eabd17944e15c892@ec2-54-235-206-118.compute-1.amazonaws.com:5432/d50nehm70slrnm')}
-
-"""
