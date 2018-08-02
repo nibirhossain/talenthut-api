@@ -214,7 +214,7 @@ class RecruiterActivitiesByRecruiterAndTalent(APIView):
 
         recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk, talent=talent_pk) \
             .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time') \
-            .distinct('talent__user__first_name', 'talent__user__last_name', 'talent__id')
+            # .distinct('talent__user__first_name', 'talent__user__last_name', 'talent__id')
         serializer = RecruiterActivityWithEventSerializer(recruiter_activities, many=True)
 
         return Response(serializer.data)
