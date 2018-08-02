@@ -12,7 +12,8 @@ from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
 from .models import Recruiter, RecruiterActivity, RecruiterEvent
 
 from .recruiter_activity_serializers import (RecruiterActivityDetailSerializer, RecruiterActivityMiniSerializer,
-                                             RecruiterActivityUpdateSerializer, RecruiterActivityCreateSerializer)
+                                             RecruiterActivityUpdateSerializer, RecruiterActivityCreateSerializer,
+                                             RecruiterActivityWithEventSerializer)
 from .resume_serializers import JobExperienceSerializer
 from .resume_serializers import TechnicalSkillSerializer, EducationSerializer, LanguageSkillSerializer
 from .resume_serializers import ResumeMiniSerializer
@@ -201,6 +202,20 @@ class RecruiterActivityListByRecruiterEvent(APIView):
         recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk, recruiter_event_id=recruiter_event_pk) \
             .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id')
         serializer = RecruiterActivityDetailSerializer(recruiter_activities, many=True)
+
+        return Response(serializer.data)
+
+
+class RecruiterActivitiesByRecruiterAndTalent(APIView):
+    def get(self, request, recruiter_pk, talent_pk):
+        """
+        List all recruiter activities by recruiter and talent
+        """
+
+        recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk, talent=talent_pk) \
+            .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time') \
+            .distinct('talent__user__first_name', 'talent__user__last_name', 'talent__id')
+        serializer = RecruiterActivityWithEventSerializer(recruiter_activities, many=True)
 
         return Response(serializer.data)
 

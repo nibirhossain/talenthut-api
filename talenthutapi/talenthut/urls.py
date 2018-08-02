@@ -12,7 +12,7 @@ from .views import LanguageSkillList, LanguageSkillDetail
 from .views import RecruiterActivities, RecruiterActivityDetail
 from .views import RecruiterList, RecruiterDetail
 from .views import TalentListByExpertise, RecruiterActivityList
-from .views import RecruiterActivityListByRecruiterEvent
+from .views import RecruiterActivityListByRecruiterEvent, RecruiterActivitiesByRecruiterAndTalent
 from .views import UserList, UserDetail
 from .views import HomeView
 from .views import LoginView
@@ -60,6 +60,8 @@ urlpatterns = [
     path('recruiter-activities/<pk>/', RecruiterActivityDetail.as_view(), name="recruiter_activity_detail"),
     path('recruiter-activities/recruiters/<int:recruiter_pk>/talents/', RecruiterActivityList.as_view(),
          name="talent_list_by_recruiter"),
+    path('recruiter-activities/recruiters/<int:recruiter_pk>/talents/<int:talent_pk>/',
+         RecruiterActivitiesByRecruiterAndTalent.as_view(), name="recruiter_activities_by_recruiter_and_talent"),
     path('recruiter-activities/<int:recruiter_event_pk>/recruiters/<int:recruiter_pk>/talents/',
          RecruiterActivityListByRecruiterEvent.as_view(), name="recruiter_activity_list_by_recruiter_event"),
 
