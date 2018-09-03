@@ -28,6 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'talenthutapi.herokuapp.com',
     'localhost',
+    '.netlify.com',
 ]
 
 
