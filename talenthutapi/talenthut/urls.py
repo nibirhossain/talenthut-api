@@ -1,21 +1,15 @@
 from django.urls import path
 
-from .views import RecruiterEventList, RecruiterEventDetail
-from .views import ExpertiseList, ExpertiseDetail
-from .views import TalentList, TalentDetail
-from .views import AddressList, AddressDetail
-from .views import ResumeList, ResumeDetail
-from .views import JobExperienceList, JobExperienceDetail
-from .views import TechnicalSkillList, TechnicalSkillDetail
-from .views import EducationList, EducationDetail
-from .views import LanguageSkillList, LanguageSkillDetail
-from .views import RecruiterActivities, RecruiterActivityDetail
-from .views import RecruiterList, RecruiterDetail
-from .views import TalentListByExpertise, RecruiterActivityList
-from .views import RecruiterActivityListByRecruiterEvent, RecruiterActivitiesByRecruiterAndTalent
-from .views import UserList, UserDetail
-from .views import HomeView
-from .views import LoginView
+from .th_views.views import RecruiterEventList, RecruiterEventDetail
+from .th_views.views import ExpertiseList, ExpertiseDetail
+from .th_views.views import TalentList, TalentDetail
+from .th_views.views import RecruiterActivities, RecruiterActivityDetail
+from .th_views.views import RecruiterList, RecruiterDetail
+from .th_views.views import TalentListByExpertise, RecruiterActivityList
+from .th_views.views import RecruiterActivityListByRecruiterEvent, RecruiterActivitiesByRecruiterAndTalent
+from .th_views.views import UserList, UserDetail
+from .th_views.views import HomeView
+from .th_views.views import LoginView
 
 app_name = 'talenthut'
 

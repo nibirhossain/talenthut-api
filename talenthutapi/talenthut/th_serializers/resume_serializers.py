@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from .models import Resume
-from .other_serializers import (JobExperienceSerializer, TechnicalSkillSerializer,
-                                LanguageSkillSerializer, EducationSerializer)
+from ..models import Resume
+from .serializers import (JobExperienceSerializer, TechnicalSkillSerializer,
+                          LanguageSkillSerializer, EducationSerializer)
 
 
 # The serializer used to list resumes with minimal fields

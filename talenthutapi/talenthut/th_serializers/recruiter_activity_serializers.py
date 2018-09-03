@@ -3,10 +3,10 @@ from rest_framework import serializers
 from django.db import transaction
 from django.utils import timezone
 
-from .models import RecruiterActivity, RecruiterActivityHistory
-from .other_serializers import RecruiterEventSerializer
+from ..models import RecruiterActivity, RecruiterActivityHistory
+from .serializers import RecruiterEventSerializer
 from .recruiter_serializers import RecruiterSerializer
-from .other_serializers import TalentMiniSerializer
+from .serializers import TalentMiniSerializer
 
 
 # The serializer used to list recruiter activities with minimal fields

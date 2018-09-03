@@ -7,21 +7,21 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
-from .models import Talent, Address, Expertise, Resume
-from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
-from .models import Recruiter, RecruiterActivity, RecruiterEvent
+from ..models import Talent, Address, Expertise, Resume
+from ..models import JobExperience, TechnicalSkill, Education, LanguageSkill
+from ..models import Recruiter, RecruiterActivity, RecruiterEvent
 
-from .recruiter_activity_serializers import (RecruiterActivityDetailSerializer, RecruiterActivityMiniSerializer,
-                                             RecruiterActivityUpdateSerializer, RecruiterActivityCreateSerializer,
-                                             RecruiterActivityWithEventSerializer)
-from .resume_serializers import JobExperienceSerializer
-from .resume_serializers import TechnicalSkillSerializer, EducationSerializer, LanguageSkillSerializer
-from .resume_serializers import ResumeMiniSerializer
-from .user_serializers import UserSerializer
-from .talent_serializers import (TalentListSerializer, TalentDetailSerializer,
-                                 TalentCreateSerializer, TalentUpdateSerializer, TalentSerializer)
-from .recruiter_serializers import RecruiterSerializer, RecruiterCreateSerializer, RecruiterUpdateSerializer
-from .other_serializers import RecruiterEventSerializer, ExpertiseSerializer, AddressSerializer
+from ..th_serializers.recruiter_activity_serializers import (RecruiterActivityDetailSerializer, RecruiterActivityMiniSerializer,
+                                                                                  RecruiterActivityUpdateSerializer, RecruiterActivityCreateSerializer,
+                                                                                  RecruiterActivityWithEventSerializer)
+from ..th_serializers.resume_serializers import JobExperienceSerializer
+from ..th_serializers.resume_serializers import TechnicalSkillSerializer, EducationSerializer, LanguageSkillSerializer
+from ..th_serializers.resume_serializers import ResumeMiniSerializer
+from ..th_serializers.user_serializers import UserSerializer
+from ..th_serializers.talent_serializers import (TalentListSerializer, TalentDetailSerializer,
+                                                                      TalentCreateSerializer, TalentUpdateSerializer, TalentSerializer)
+from ..th_serializers.recruiter_serializers import RecruiterSerializer, RecruiterCreateSerializer, RecruiterUpdateSerializer
+from ..th_serializers.serializers import RecruiterEventSerializer, ExpertiseSerializer, AddressSerializer
 
 
 class HomeView(APIView):

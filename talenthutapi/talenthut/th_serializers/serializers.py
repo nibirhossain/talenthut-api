@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from .models import Address, Expertise, Talent
-from .models import JobExperience, TechnicalSkill, Education, LanguageSkill
-from .models import RecruiterEvent, Sex, MaritalStatus
+from ..models import Address, Expertise, Talent
+from ..models import JobExperience, TechnicalSkill, Education, LanguageSkill
+from ..models import RecruiterEvent, Sex, MaritalStatus
 
 from .user_serializers import UserSerializer
 

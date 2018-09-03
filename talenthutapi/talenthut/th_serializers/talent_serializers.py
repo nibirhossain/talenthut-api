@@ -1,11 +1,11 @@
 from rest_framework import serializers
 from django.db import transaction
 
-from .models import Talent
+from ..models import Talent
 from .user_serializers import UserSerializer
 from .recruiter_activity_serializers import RecruiterActivityWithEventSerializer
 from .resume_serializers import ResumeDetailSerializer
-from .other_serializers import TalentDescriptiveSerializer
+from .serializers import TalentDescriptiveSerializer
 
 
 class TalentSerializer(serializers.ModelSerializer):
