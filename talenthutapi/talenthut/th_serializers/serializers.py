@@ -1,10 +1,8 @@
 from rest_framework import serializers
-
 from ..models import Address, Expertise, Talent
 from ..models import JobExperience, TechnicalSkill, Education, LanguageSkill
 from ..models import RecruiterEvent, Sex, MaritalStatus
-
-from .user_serializers import UserSerializer
+from .user import UserSerializer
 
 
 # The serializer used to list expertises, create, update, delete and detail an expertise

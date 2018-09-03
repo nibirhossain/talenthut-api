@@ -2,10 +2,23 @@ from rest_framework import serializers
 from django.db import transaction
 
 from ..models import Talent
-from .user_serializers import UserSerializer
-from .recruiter_activity_serializers import RecruiterActivityWithEventSerializer
-from .resume_serializers import ResumeDetailSerializer
-from .serializers import TalentDescriptiveSerializer
+from .user import UserSerializer
+from .recruiter_activity import RecruiterActivityWithEventSerializer
+from .resume import ResumeDetailSerializer
+from .serializers import TalentDescriptiveSerializer, ExpertiseSerializer
+
+
+# The serializer used to list talents with minimal fields
+class TalentMiniSerializer(serializers.ModelSerializer):
+
+    # one to one relationship
+    user = UserSerializer(required=True)
+    # many to many relationship
+    expertises = ExpertiseSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Talent
+        fields = '__all__'
 
 
 class TalentSerializer(serializers.ModelSerializer):

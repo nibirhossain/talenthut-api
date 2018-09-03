@@ -6,7 +6,7 @@ from django.utils.encoding import force_text
 from rest_framework import status
 
 from ..models import Recruiter
-from .user_serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer
+from .user import UserSerializer, UserCreateSerializer, UserUpdateSerializer
 
 
 # The custom validator handles recruiter related exceptions

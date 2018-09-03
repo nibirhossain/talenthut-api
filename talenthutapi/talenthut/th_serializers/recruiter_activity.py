@@ -1,11 +1,9 @@
 from rest_framework import serializers
-
 from django.db import transaction
 from django.utils import timezone
-
 from ..models import RecruiterActivity, RecruiterActivityHistory
 from .serializers import RecruiterEventSerializer
-from .recruiter_serializers import RecruiterSerializer
+from .recruiter import RecruiterSerializer
 from .serializers import TalentMiniSerializer
 
 
@@ -81,11 +79,6 @@ class RecruiterActivityUpdateSerializer(serializers.ModelSerializer):
                 RecruiterActivityHistoryCreateSerializer(), validated_data=validated_data)
 
             return instance
-
-
-"""
---------------------------------------------------------------------------------------------------
-"""
 
 
 # The serializer used to list recruiter activity histories with minimal fields
