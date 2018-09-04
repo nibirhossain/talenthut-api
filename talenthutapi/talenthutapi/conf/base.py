@@ -26,9 +26,10 @@ SECRET_KEY = 'z4kx10v+y)&&gag6t&%@5jhok))ve3ud5hx6lv3cw9t)z^b1h0'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'talenthutapi.herokuapp.com',
-    'localhost',
-    '.netlify.com',
+    # 'talenthutapi.herokuapp.com',
+    # 'localhost',
+    # '.netlify.com',
+    '*',
 ]
 
 
