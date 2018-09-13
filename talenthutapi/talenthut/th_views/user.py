@@ -1,12 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.permissions import IsAdminUser
 from django.contrib.auth.models import User
 from ..th_serializers.user import UserSerializer
 
 
 class UserList(APIView):
+
+    permission_classes = (IsAdminUser, )
 
     def get(self, request):
         """
@@ -29,17 +32,16 @@ class UserList(APIView):
 
 class UserDetail(APIView):
 
-    def get_object(self, pk):
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            raise Http404
+    def get_object(self):
+        obj = get_object_or_404(User, pk=self.kwargs["pk"])
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def get(self, request, pk):
         """
         Retrieve a user instance
         """
-        user = self.get_object(pk)
+        user = self.get_object()
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
@@ -47,7 +49,7 @@ class UserDetail(APIView):
         """
         Update a user instance
         """
-        user = self.get_object(pk)
+        user = self.get_object()
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()

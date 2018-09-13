@@ -15,11 +15,27 @@ class RecruiterActivityMiniSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FilteredListSerializer(serializers.ListSerializer):
+
+    def to_representation(self, data):
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+
+        if user and getattr(request.user, 'recruiter', False):
+            data = data.filter(recruiter__id=user.recruiter.id)
+        else:
+            data = []  # if recruiter does not exist
+        return super(FilteredListSerializer, self).to_representation(data)
+
+
 # The serializer used to list recruiter activities with minimal fields and recruiter event details
 class RecruiterActivityWithEventSerializer(serializers.ModelSerializer):
     recruiter_event = RecruiterEventSerializer()
 
     class Meta:
+        list_serializer_class = FilteredListSerializer
         model = RecruiterActivity
         fields = '__all__'
 

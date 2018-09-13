@@ -1,13 +1,16 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from ..models import Talent
 from ..th_serializers.talent import (TalentListSerializer, TalentDetailSerializer,
                                      TalentUpdateSerializer, TalentCreateSerializer)
+from ..th_permissions import IsAdminUserOrRecruiter, IsAdminOrRecruiterOrTalentItself
 
 
 class TalentList(APIView):
+
+    permission_classes = [IsAdminUserOrRecruiter, ]
 
     def get(self, request):
         """
@@ -30,6 +33,9 @@ class TalentList(APIView):
 
 class TalentListByExpertise(APIView):
 
+    permission_classes = (IsAdminUserOrRecruiter, )
+
+    # Global IsAuthenticated permission has been applied here
     def get(self, request, expertise_pk):
         """
         List all talents by expertise.
@@ -61,25 +67,26 @@ class TalentListByRecruiter(APIView):
 
 class TalentDetail(APIView):
 
-    def get_object(self, pk):
-        try:
-            return Talent.objects.get(pk=pk)
-        except Talent.DoesNotExist:
-            raise Http404
+    permission_classes = (IsAdminOrRecruiterOrTalentItself, )
+
+    def get_object(self):
+        obj = get_object_or_404(Talent, pk=self.kwargs["pk"])
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def get(self, request, pk):
         """
         Retrieve a talent instance.
         """
-        talent = self.get_object(pk)
-        serializer = TalentDetailSerializer(talent)
+        talent = self.get_object()
+        serializer = TalentDetailSerializer(talent, context={"request": request})
         return Response(serializer.data)
 
     def put(self, request, pk):
         """
         Update a talent instance.
         """
-        talent = self.get_object(pk)
+        talent = self.get_object()
         serializer = TalentUpdateSerializer(talent, data=request.data)
         if serializer.is_valid():
             serializer.save()

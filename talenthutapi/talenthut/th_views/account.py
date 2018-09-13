@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from ..models import Talent, Recruiter
 from ..th_serializers.talent import TalentSerializer
 from ..th_serializers.recruiter import RecruiterSerializer
+from ..th_serializers.user import UserSerializer
 
 
 class HomeView(APIView):
@@ -27,8 +28,13 @@ class LoginView(APIView):
         password = request.data.get('password')
 
         user = authenticate(username=username, password=password)
-        # TODO: review the below authentication section
-        if user and user.is_active:
+
+        if user and user.is_active and user.is_staff:
+            token, created = Token.objects.get_or_create(user=user)
+            serializer = UserSerializer(user)
+            return Response({'token': token.key, 'admin': serializer.data})
+
+        elif user and user.is_active:
             try:
                 recruiter = Recruiter.objects.get(user=user)
                 serializer = RecruiterSerializer(recruiter)
@@ -38,7 +44,7 @@ class LoginView(APIView):
                 try:
                     talent = Talent.objects.get(user=user)
                     serializer = TalentSerializer(talent)
-                    token, created = Token.objects.get_or_create(user=user)
+                    token, _ = Token.objects.get_or_create(user=user)
                     return Response({'token': token.key, 'talent': serializer.data})
                 except ObjectDoesNotExist:
                     return Response({"Exception": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)

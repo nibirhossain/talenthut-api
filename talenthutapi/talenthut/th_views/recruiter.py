@@ -1,13 +1,17 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.permissions import IsAdminUser
 from ..models import Recruiter
 from ..th_serializers.recruiter import (RecruiterSerializer, RecruiterCreateSerializer,
                                         RecruiterUpdateSerializer)
+from ..th_permissions import IsAdminUserOrRecruiterItself
 
 
 class RecruiterList(APIView):
+
+    permission_classes = (IsAdminUser, )
 
     def get(self, request):
         """
@@ -30,17 +34,18 @@ class RecruiterList(APIView):
 
 class RecruiterDetail(APIView):
 
-    def get_object(self, pk):
-        try:
-            return Recruiter.objects.get(pk=pk)
-        except Recruiter.DoesNotExist:
-            raise Http404
+    permission_classes = (IsAdminUserOrRecruiterItself, )
+
+    def get_object(self):
+        obj = get_object_or_404(Recruiter, pk=self.kwargs["pk"])
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def get(self, request, pk):
         """
         Retrieve a recruiter instance.
         """
-        recruiter = self.get_object(pk)
+        recruiter = self.get_object()
         serializer = RecruiterSerializer(recruiter)
         return Response(serializer.data)
 
@@ -48,7 +53,7 @@ class RecruiterDetail(APIView):
         """
         Update a recruiter instance.
         """
-        recruiter = self.get_object(pk)
+        recruiter = self.get_object()
         # partial update possible e.g. only username or password can be updated
         serializer = RecruiterUpdateSerializer(recruiter, data=request.data, partial=True)
         if serializer.is_valid():
