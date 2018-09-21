@@ -155,7 +155,8 @@ class RecruiterActivity(models.Model):
     talent = models.ForeignKey(Talent, related_name='recruiter_activities', on_delete=models.CASCADE)
     recruiter_event = models.ForeignKey('RecruiterEvent', on_delete=models.CASCADE)
     event_time = models.DateTimeField(default=timezone.now)
-    is_unchanged = models.BooleanField(default=True)
+    is_updated = models.BooleanField(default=False)
+    is_disabled = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Recruiter Activity'
@@ -172,7 +173,8 @@ class RecruiterActivityHistory(models.Model):
     talent = models.ForeignKey(Talent, related_name='recruiter_activity_histories', on_delete=models.CASCADE)
     recruiter_event = models.ForeignKey('RecruiterEvent', on_delete=models.CASCADE)
     event_time = models.DateTimeField(default=timezone.now)
-    is_unchanged = models.BooleanField(default=True)
+    is_updated = models.BooleanField(default=False)
+    is_disabled = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Recruiter Activity History'

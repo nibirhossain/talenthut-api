@@ -39,7 +39,6 @@ class TalentListSerializer(TalentDescriptiveSerializer):
 
 # The serializer used to list talent with all fields
 class TalentDetailSerializer(TalentDescriptiveSerializer):
-
     # one to many relationship
     recruiter_activities = RecruiterActivityWithEventSerializer(many=True)
     # one to one relationship
