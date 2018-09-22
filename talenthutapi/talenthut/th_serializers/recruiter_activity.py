@@ -29,79 +29,95 @@ class FilteredListSerializer(serializers.ListSerializer):
         if user and getattr(request.user, 'recruiter', False):
             data = data.filter(recruiter__id=user.recruiter.id)
 
+            # ........................................................................... #
+            # CASE 1 |     X    |          X           |     X    |     X    |     X    | #
+            # ........................................................................... #
+            # CASE 2 |     X    | Send Contact Request |     X    | Hire     |     X    | #
+            # .......................................................... ................ #
+            # CASE 3 | Bookmark |          X           | Send CR  |     X    | Reject   | #
+            # ........................................................................... #
+            # CASE 4 | Bookmark |          X           |     X    |     X    |     X    | #
+            # ........................................................................... #
+
             # Get length of the recruiter activity list
             length = len(data)
+            # get all recruiter events from activity list
+            event_list = [recruiter_activity.recruiter_event for recruiter_activity in data]
 
-            if length <= 0:  # CASE 1: if no activities with a specific talent
+            # CASE 1: if no activities with a specific talent
+            if length <= 0:
                 for recruiter_event in recruiter_events:
                     activity = RecruiterActivity()
                     activity.recruiter_event = recruiter_event
                     temp_data.append(activity)
                 # print("recruiter activity list is empty")
-            else:
-                try:
-                    # CASE 2: Only Send contact request
-                    # get all recruiter events from activity list
-                    event_list = [recruiter_activity.recruiter_event for recruiter_activity in data]
 
-                    # Bookmark does not exist in the recruiter activity list
-                    if len(event_list) > 0 and recruiter_events[0] not in event_list:
-                        skipped = True  # checks if some events are skipped
-                        for recruiter_event in recruiter_events:
-                            idx = 0
-                            while idx < length:
-                                if recruiter_event.id == data[idx].recruiter_event.id:
-                                    data[idx].is_disabled = True
-                                    temp_data.append(data[idx])
-                                    skipped = False
-                                    break
-                                idx = idx + 1
-                            if idx == length:
-                                activity = RecruiterActivity()
-                                activity.recruiter_event = recruiter_event
-                                if skipped:
-                                    activity.is_disabled = True
-                                temp_data.append(activity)
-                        # print("Only send Contact Request")
+            # CASE 2: Only Send contact request
+            # Bookmark does not exist in the recruiter activity list
+            elif recruiter_events[0] not in event_list and length >= 1:
+                temp_event_list = event_list
+                skipped = True  # checks if some events are skipped
+                for recruiter_event in recruiter_events:
+                    idx = 0
+                    while idx < length:
+                        if recruiter_event.id == data[idx].recruiter_event.id:
+                            data[idx].is_disabled = True
+                            temp_data.append(data[idx])
+                            if len(temp_event_list) == 1:
+                                skipped = False
+                            temp_event_list.remove(recruiter_event)
+                            break
+                        idx = idx + 1
+                    if idx == length:
+                        activity = RecruiterActivity()
+                        activity.recruiter_event = recruiter_event
+                        if skipped:
+                            activity.is_disabled = True
+                        temp_data.append(activity)
+                # print("Only send Contact Request")
 
-                    # CASE 3: Bookmark and Send Contact Request
-                    # Bookmark exists in the recruiter activity list
-                    elif recruiter_events[0] in event_list and data[1]:
-                        skipped = True
+            # CASE 3: Bookmark and Send Contact Request
+            # Bookmark exists in the recruiter activity list
+            elif recruiter_events[0] in event_list and length >= 2:
+                temp_event_list = event_list
+                skipped = True
 
-                        for recruiter_event in recruiter_events:
-                            idx = 0
-                            while idx < length:
-                                if recruiter_event.id == data[idx].recruiter_event.id:
-                                    data[idx].is_disabled = True
-                                    temp_data.append(data[idx])
-                                    # checks if not Bookmark event
-                                    if recruiter_events[0] != recruiter_event:
-                                        skipped = False
-                                    break
-                                idx = idx + 1
-                            if idx == length:
-                                activity = RecruiterActivity()
-                                if skipped:
-                                    activity.is_disabled = True
-                                activity.recruiter_event = recruiter_event
-                                temp_data.append(activity)
-                        # print("Bookmark and CR")
-                except IndexError:
-                    # CASE 4: Only bookmark
-                    for recruiter_event in recruiter_events:
-                        idx = 0
-                        while idx < length:
-                            if recruiter_event.id == data[idx].recruiter_event.id:
+                for recruiter_event in recruiter_events:
+                    idx = 0
+                    while idx < length:
+                        if recruiter_event.id == data[idx].recruiter_event.id:
+                            data[idx].is_disabled = True
+                            temp_data.append(data[idx])
+                            # checks if not Bookmark event
+                            if len(temp_event_list) == 1:
+                                skipped = False
+                            temp_event_list.remove(recruiter_event)
+                            break
+                        idx = idx + 1
+                    if idx == length:
+                        activity = RecruiterActivity()
+                        if skipped:
+                            activity.is_disabled = True
+                        activity.recruiter_event = recruiter_event
+                        temp_data.append(activity)
+                # print("Bookmark and CR")
+
+            # CASE 4: Only bookmark
+            elif recruiter_events[0] in event_list and length == 1:
+                for recruiter_event in recruiter_events:
+                    idx = 0
+                    while idx < length:
+                        if recruiter_event.id == data[idx].recruiter_event.id:
+                            if not data[idx].is_updated:
                                 data[idx].recruiter_event.name = 'Unbookmark'
-                                temp_data.append(data[idx])
-                                break
-                            idx = idx + 1
-                        if idx == length:
-                            activity = RecruiterActivity()
-                            activity.recruiter_event = recruiter_event
-                            temp_data.append(activity)
-                    # print("Only Bookmark")
+                            temp_data.append(data[idx])
+                            break
+                        idx = idx + 1
+                    if idx == length:
+                        activity = RecruiterActivity()
+                        activity.recruiter_event = recruiter_event
+                        temp_data.append(activity)
+                # print("Only Bookmark")
         else:
             temp_data = []  # if recruiter does not exist
         return super(FilteredListSerializer, self).to_representation(temp_data)
