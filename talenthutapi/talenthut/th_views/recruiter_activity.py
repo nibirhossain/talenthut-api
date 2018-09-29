@@ -114,7 +114,13 @@ class RecruiterActivities(APIView):
         """
         Create a new recruiter activity
         """
-        serializer = RecruiterActivityCreateSerializer(data=request.data)
+        # check if the provided parameter for recruiter matches with logged in recruiter
+        recruiter = request.data.get('recruiter', None)
+        if request.user and getattr(request.user, 'recruiter', False) and str(request.user.recruiter.id) != recruiter:
+            data = {"detail": "Unauthorized. The provided recruiter argument does not match with logged in recruiter."}
+            return Response(data=data, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = RecruiterActivityCreateSerializer(data=request.data, context={"recruiter": recruiter})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

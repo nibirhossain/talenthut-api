@@ -151,12 +151,12 @@ class RecruiterActivityCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecruiterActivity
-        read_only_fields = ('event_time', 'is_unchanged')
+        read_only_fields = ('event_time', 'is_updated')
         fields = '__all__'
 
     def create(self, validated_data):
         print('Create() method called')
-        # create recruiter activity history
+        # create recruiter activity
         recruiter_activity = RecruiterActivity(
             recruiter=validated_data.get('recruiter', None),
             talent=validated_data.get('talent', None),
@@ -177,11 +177,11 @@ class RecruiterActivityUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecruiterActivity
         read_only_fields = ('event_time',)
-        fields = ('recruiter', 'talent', 'recruiter_event', 'event_time', 'is_unchanged')
+        fields = ('recruiter', 'talent', 'recruiter_event', 'event_time', 'is_updated')
 
     def update(self, instance, validated_data):
         with transaction.atomic():
-            instance.is_unchanged = validated_data.get('is_unchanged', instance.is_unchanged)
+            instance.is_updated = validated_data.get('is_updated', instance.is_updated)
             instance.event_time = timezone.now()
             instance.save()
             print(validated_data)
@@ -197,7 +197,7 @@ class RecruiterActivityHistoryMiniSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecruiterActivityHistory
-        fields = ('id', 'recruiter', 'talent', 'recruiter_event', 'event_time', 'is_unchanged')
+        fields = ('id', 'recruiter', 'talent', 'recruiter_event', 'event_time', 'is_updated')
 
 
 # The serializer used to create a recruiter activity history instance
@@ -206,7 +206,7 @@ class RecruiterActivityHistoryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecruiterActivityHistory
         read_only_fields = ('event_time',)
-        fields = ('recruiter', 'talent', 'recruiter_event', 'event_time', 'is_unchanged')
+        fields = ('recruiter', 'talent', 'recruiter_event', 'event_time', 'is_updated')
 
     def create(self, validated_data):
         # create recruiter activity history
@@ -216,11 +216,11 @@ class RecruiterActivityHistoryCreateSerializer(serializers.ModelSerializer):
             recruiter_event=validated_data.get('recruiter_event', None),
             event_time=timezone.now()
         )
-        is_unchanged = validated_data.get('is_unchanged', None)
-        if is_unchanged is None:
-            recruiter_activity_history.is_unchanged = True
+        is_updated = validated_data.get('is_updated', None)
+        if is_updated is None:
+            recruiter_activity_history.is_updated = True
         else:
-            recruiter_activity_history.is_unchanged = is_unchanged
+            recruiter_activity_history.is_updated = is_updated
 
         recruiter_activity_history.save()
         return recruiter_activity_history
