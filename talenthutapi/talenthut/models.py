@@ -28,13 +28,13 @@ class MaritalStatus(models.Model):
 
 class Talent(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    sex = models.ForeignKey(Sex, on_delete=models.CASCADE)
-    marital_status = models.ForeignKey(MaritalStatus, on_delete=models.CASCADE)
+    sex = models.ForeignKey(Sex, on_delete=models.CASCADE, null=True)
+    marital_status = models.ForeignKey(MaritalStatus, on_delete=models.CASCADE, null=True)
     experience = models.FloatField(default=0)
-    birthdate = models.DateField(default='1900-01-01')
-    mobile = models.CharField(max_length=20, default='')
-    qualification = models.CharField(max_length=100, verbose_name='Qualification')
-    birthplace = models.CharField(max_length=100, verbose_name='Birth Place')
+    birthdate = models.DateField(null=True)
+    mobile = models.CharField(max_length=20, null=True)
+    qualification = models.CharField(max_length=100, null=True, verbose_name='Qualification')
+    birthplace = models.CharField(max_length=100, null=True, verbose_name='Birth Place')
     photo = models.ImageField(upload_to="static/talent/img/", null=True, blank=True)
     expertises = models.ManyToManyField('Expertise')
     description = models.TextField(max_length=1000, blank=True, null=True)
@@ -137,9 +137,9 @@ class LanguageSkill(models.Model):
 
 class Recruiter(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    company_name = models.CharField(max_length=50)
-    company_website = models.URLField(max_length=200, null=True, blank=True, verbose_name='Company Website')
-    position = models.CharField(max_length=50)
+    company_name = models.CharField(max_length=200)
+    company_website = models.URLField(max_length=200, null=True, verbose_name='Company Website')
+    position = models.CharField(max_length=200, null=True)
 
     class Meta:
         verbose_name = 'Recruiter'
