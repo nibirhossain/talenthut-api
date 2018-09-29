@@ -10,6 +10,17 @@ class IsAdminUserOrRecruiter(BasePermission):
         return False
 
 
+class IsAdminUserOrRecruiterWithPostMethod(BasePermission):
+
+    def has_permission(self, request, view):
+        if request.user and ((getattr(request.user, 'recruiter', False) and request.method == "POST")
+                             or request.user.is_staff):
+            return True
+
+        return False
+
+
+# This permission class is used for recruiter itself or those activities are related to the recruiter
 class IsAdminUserOrRecruiterItself(BasePermission):
 
     def has_object_permission(self, request, view, obj):

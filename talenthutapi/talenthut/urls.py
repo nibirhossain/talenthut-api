@@ -56,7 +56,7 @@ urlpatterns = [
     path('recruiter-activities/recruiters/<int:recruiter_pk>/talents/<int:talent_pk>/',
          RecruiterActivitiesByRecruiterAndTalent.as_view(), name="recruiter_activities_by_recruiter_and_talent"),
     # TODO: adjust the URL path for events
-    path('recruiter-activities/<int:recruiter_event_pk>/recruiters/<int:recruiter_pk>/talents/',
+    path('recruiter-activities/recruiters/<int:recruiter_pk>/actions/<int:recruiter_event_pk>/talents/',
          RecruiterActivityListByRecruiterEvent.as_view(), name="recruiter_activity_list_by_recruiter_event"),
 
 ]

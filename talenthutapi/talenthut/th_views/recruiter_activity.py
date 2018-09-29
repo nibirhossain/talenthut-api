@@ -2,7 +2,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.permissions import IsAdminUser
 
 from ..models import RecruiterActivity
 
@@ -11,7 +10,7 @@ from ..th_serializers.recruiter_activity import (RecruiterActivityDetailSerializ
                                                  RecruiterActivityUpdateSerializer,
                                                  RecruiterActivityCreateSerializer,
                                                  RecruiterActivityWithEventSerializer)
-from ..th_permissions import IsAdminUserOrRecruiterItself, IsAdminUserOrRecruiter
+from ..th_permissions import IsAdminUserOrRecruiterItself, IsAdminUserOrRecruiter, IsAdminUserOrRecruiterWithPostMethod
 
 
 class RecruiterActivityList(APIView):
@@ -28,8 +27,10 @@ class RecruiterActivityList(APIView):
 
         # if true, recruiter id will be retrieved from logged in user. Otherwise the user would be admin
         # and the provided 'recruiter_pk' parameter would be used to fetch recruiter activity list
-        if request.user and getattr(request.user, 'recruiter', False):
-            recruiter_pk = request.user.recruiter.id
+        if request.user and not request.user.is_staff and \
+                (getattr(request.user, 'recruiter', False) and recruiter_pk != request.user.recruiter.id):
+            data = {"detail": "Unauthorized. You do not have permission to perform this action."}
+            return Response(data=data, status=status.HTTP_401_UNAUTHORIZED)
 
         # distinct is not supported on sqlite3 database
         # recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk) \
@@ -57,8 +58,10 @@ class RecruiterActivityListByRecruiterEvent(APIView):
 
         # if true, recruiter id will be retrieved from logged in user. Otherwise the user would be admin
         # and the provided 'recruiter_pk' parameter would be used to fetch recruiter activity list
-        if request.user and getattr(request.user, 'recruiter', False):
-            recruiter_pk = request.user.recruiter.id
+        if request.user and not request.user.is_staff and \
+                (getattr(request.user, 'recruiter', False) and recruiter_pk != request.user.recruiter.id):
+            data = {"detail": "Unauthorized. You do not have permission to perform this action."}
+            return Response(data=data, status=status.HTTP_401_UNAUTHORIZED)
 
         recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk,
                                                                 recruiter_event_id=recruiter_event_pk) \
@@ -80,8 +83,10 @@ class RecruiterActivitiesByRecruiterAndTalent(APIView):
 
         # if true, recruiter id will be retrieved from logged in user. Otherwise the user would be admin
         # and the provided 'recruiter_pk' parameter would be used to fetch recruiter activity list
-        if request.user and getattr(request.user, 'recruiter', False):
-            recruiter_pk = request.user.recruiter.id
+        if request.user and not request.user.is_staff and \
+                (getattr(request.user, 'recruiter', False) and recruiter_pk != request.user.recruiter.id):
+            data = {"detail": "Unauthorized. You do not have permission to perform this action."}
+            return Response(data=data, status=status.HTTP_401_UNAUTHORIZED)
 
         recruiter_activities = RecruiterActivity.objects.filter(recruiter=recruiter_pk, talent=talent_pk) \
             .order_by('talent__user__first_name', 'talent__user__last_name', 'talent__id', '-event_time') \
@@ -95,7 +100,7 @@ class RecruiterActivitiesByRecruiterAndTalent(APIView):
 # TODO : name has to be adjusted later
 class RecruiterActivities(APIView):
 
-    permission_classes = (IsAdminUser, )
+    permission_classes = (IsAdminUserOrRecruiterWithPostMethod, )
 
     def get(self, request):
         """
