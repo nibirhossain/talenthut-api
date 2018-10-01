@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
 from django.contrib.auth.models import User
-from ..th_serializers.user import UserSerializer
+from ..th_serializers.user import UserSerializer, UserUpdateSerializer
 
 
 class UserList(APIView):
@@ -50,10 +50,11 @@ class UserDetail(APIView):
         Update a user instance
         """
         user = self.get_object()
-        serializer = UserSerializer(user, data=request.data)
+        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     """

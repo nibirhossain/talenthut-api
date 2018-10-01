@@ -1,6 +1,14 @@
 from rest_framework.permissions import BasePermission
 
 
+class IsAdminUserOrPostMethod(BasePermission):
+    def has_permission(self, request, view):
+        if (request.user and request.user.is_staff) or request.method == 'POST':
+            return True
+
+        return False
+
+
 class IsAdminUserOrRecruiter(BasePermission):
 
     def has_permission(self, request, view):

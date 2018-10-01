@@ -8,13 +8,15 @@ from .th_views.recruiter_activity import (RecruiterActivities, RecruiterActivity
                                           RecruiterActivitiesByRecruiterAndTalent)
 from .th_views.recruiter import RecruiterList, RecruiterDetail
 from .th_views.user import UserList, UserDetail
-from .th_views.account import HomeView, LoginView
+from .th_views.account import HomeView, LoginView, SignupRecruiterView, SignupTalentView
 
 app_name = 'talenthut'
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('login/', LoginView.as_view(), name='login'),
+    path('recruiter/signup/', SignupRecruiterView.as_view(), name="signup_recruiter"),
+    path('talent/signup/', SignupTalentView.as_view(), name="signup_talent"),
     path('recruiter-events/', RecruiterEventList.as_view(), name="recruiter_event_list"),
     path('recruiter-events/<pk>/', RecruiterEventDetail.as_view(), name="recruiter_event_detail"),
 

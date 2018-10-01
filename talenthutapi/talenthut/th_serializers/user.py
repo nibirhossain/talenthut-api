@@ -45,7 +45,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email')
+        # fields = ('id', 'username', 'first_name', 'last_name', 'email')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'password')
+        extra_kwargs = {
+            'password': {'write_only': True},
+            }
 
 
 # The serializer used to create a user instance
@@ -88,27 +92,26 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'password')
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'password')
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False},
+            'username': {'validators': []},
+            'first_name': {'required': False},
+            'last_name': {'required': False}
+        }
 
     def update(self, instance, validated_data):
         with transaction.atomic():
-            try:
-                instance.username = validated_data.get('username', instance.username)
-                instance.email = validated_data.get('email', instance.email)
-                instance.first_name = validated_data.get('first_name', instance.first_name)
-                instance.last_name = validated_data.get('last_name', instance.last_name)
-                password = validated_data.get('password', None)
+            instance.username = validated_data.get('username', instance.username)
+            instance.email = validated_data.get('email', instance.email)
+            instance.first_name = validated_data.get('first_name', instance.first_name)
+            instance.last_name = validated_data.get('last_name', instance.last_name)
+            password = validated_data.get('password', None)
 
-                if password is None:
-                    instance.set_password(password)
-                    print("Password has been successfully changed.")
-                instance.save()
+            if password is not None:
+                instance.set_password(password)
+                print("Password has been successfully changed.")
+            instance.save()
 
-                return instance
-            except IntegrityError:
-                # create a dictionary and send all fields to check for which one gets exception
-                field_dict = {'first_name': instance.first_name, 'last_name': instance.last_name, 'email': instance.email}
-                # handle user related exception
-                raise UserCustomValidation(field_dict)
+            return instance
 

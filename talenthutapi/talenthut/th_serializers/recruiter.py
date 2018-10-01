@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from django.db import transaction
-from django.db import IntegrityError
+from django.contrib.auth.models import User
 from rest_framework.exceptions import APIException
 from django.utils.encoding import force_text
 from rest_framework import status
 
 from ..models import Recruiter
-from .user import UserSerializer, UserCreateSerializer, UserUpdateSerializer
+from .user import UserSerializer, UserUpdateSerializer
 
 
 # The custom validator handles recruiter related exceptions
@@ -36,31 +36,23 @@ class RecruiterSerializer(serializers.ModelSerializer):
 
 # The serializer used to create recruiter
 class RecruiterCreateSerializer(serializers.ModelSerializer):
-    user = UserCreateSerializer(required=True)
+
+    user = UserSerializer(required=True)
 
     class Meta:
         model = Recruiter
         # fields = '__all__'
-        fields = ('user', 'company_name', 'company_website', 'position')
+        fields = ('id', 'user', 'company_name', 'company_website', 'position')
 
     def create(self, validated_data):
-        company_name = validated_data.get('company_name', None)
-        position = validated_data.get('position', None)
-
         with transaction.atomic():
-            try:
-                user_data = validated_data.pop('user')
-                user = UserCreateSerializer.create(UserCreateSerializer(), validated_data=user_data)
-                if user is not None:
-                    recruiter = Recruiter.objects.create(user=user, **validated_data)
-                else:
-                    print('Recruiter is not created.')
-                return recruiter
-            except IntegrityError:
-                # create a dictionary and send all fields to check for which one gets exception
-                field_dict = {'company_name': company_name, 'position': position}
-                # handle recruiter related exceptions
-                raise RecruiterCustomValidation(field_dict)
+            user_data = validated_data.pop('user')
+            # create user
+            user = User.objects.create(**user_data)
+            # create recruiter
+            recruiter = Recruiter.objects.create(user=user, **validated_data)
+
+            return recruiter
 
 
 # The serializer used to update a specific recruiter
@@ -69,16 +61,20 @@ class RecruiterUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recruiter
-        fields = ('user', 'company_name', 'company_website', 'position')
+        fields = ('id', 'user', 'company_name', 'company_website', 'position')
 
     def update(self, instance, validated_data):
         with transaction.atomic():
-            user_data = validated_data.pop('user')
+            # update user portion
+            user_data = validated_data.pop('user', None)
             UserUpdateSerializer.update(UserUpdateSerializer(), instance.user, validated_data=user_data)
+
+            # update recruiter portion
             instance.company_name = validated_data.get('company_name', instance.company_name)
             instance.company_website = validated_data.get('company_website', instance.company_website)
             instance.position = validated_data.get('position', instance.position)
             instance.save()
 
             return instance
+
 

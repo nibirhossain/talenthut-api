@@ -36,11 +36,11 @@ class Talent(models.Model):
     qualification = models.CharField(max_length=100, null=True, verbose_name='Qualification')
     birthplace = models.CharField(max_length=100, null=True, verbose_name='Birth Place')
     photo = models.ImageField(upload_to="static/talent/img/", null=True, blank=True)
-    expertises = models.ManyToManyField('Expertise')
+    expertises = models.ManyToManyField('Expertise', null=True)
     description = models.TextField(max_length=1000, blank=True, null=True)
 
     def __str__(self):
-        return self.user.first_name + " " + self.user.last_name
+        return self.user.username
 
 
 class Expertise(models.Model):
@@ -147,7 +147,7 @@ class Recruiter(models.Model):
         # ordering = ['first_name', 'last_name']
 
     def __str__(self):
-        return self.user.first_name + ' ' + self.user.last_name
+        return self.user.username
 
 
 class RecruiterActivity(models.Model):

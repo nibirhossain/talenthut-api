@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from ..models import Talent
 from ..th_serializers.talent import (TalentListSerializer, TalentDetailSerializer,
-                                     TalentUpdateSerializer, TalentCreateSerializer)
+                                     TalentUpdateSerializer)
 from ..th_permissions import IsAdminUserOrRecruiter, IsAdminOrRecruiterOrTalentItself
 
 
@@ -19,16 +19,6 @@ class TalentList(APIView):
         talents = Talent.objects.all()
         serializer = TalentListSerializer(talents, many=True)
         return Response(serializer.data)
-
-    def post(self, request):
-        """
-        Create a new talent instance
-        """
-        serializer = TalentCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TalentListByExpertise(APIView):
@@ -90,7 +80,10 @@ class TalentDetail(APIView):
         serializer = TalentUpdateSerializer(talent, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            print(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        print(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     """
