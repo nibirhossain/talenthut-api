@@ -24,6 +24,20 @@ class UserCustomValidation(APIException):
 """
 
 
+class CustomValidation(APIException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = 'A server error occurred.'
+
+    def __init__(self, detail, field, status_code):
+        if status_code is not None:
+            self.status_code = status_code
+        if detail is not None:
+            # self.detail = {field: force_text(detail)}
+            self.detail = {"user": {field: [force_text(detail)]}}
+        else:
+            self.detail = {'detail': force_text(self.default_detail)}
+
+
 # This custom validator handles user related exceptions
 class UserCustomValidation(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
@@ -101,17 +115,29 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         }
 
     def update(self, instance, validated_data):
+        username = validated_data.get('username', None)
+
         with transaction.atomic():
-            instance.username = validated_data.get('username', instance.username)
-            instance.email = validated_data.get('email', instance.email)
-            instance.first_name = validated_data.get('first_name', instance.first_name)
-            instance.last_name = validated_data.get('last_name', instance.last_name)
-            password = validated_data.get('password', None)
+            try:
+                instance.username = validated_data.get('username', instance.username)
+                instance.email = validated_data.get('email', instance.email)
+                instance.first_name = validated_data.get('first_name', instance.first_name)
+                instance.last_name = validated_data.get('last_name', instance.last_name)
+                password = validated_data.get('password', None)
 
-            if password is not None:
-                instance.set_password(password)
-                print("Password has been successfully changed.")
-            instance.save()
+                if password is not None:
+                    instance.set_password(password)
+                    print("Password has been successfully changed.")
+                instance.save()
 
-            return instance
+                return instance
+            except IntegrityError:
+                # create a dictionary and send all fields to check for which one gets exception
+                field_dict = {'username': username}
+                print(field_dict)
+                # handle user related exceptions
+                raise CustomValidation('Username already exists', 'username', status_code=status.HTTP_409_CONFLICT)
+
+
+
 

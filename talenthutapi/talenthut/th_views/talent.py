@@ -5,7 +5,7 @@ from rest_framework import status
 from ..models import Talent
 from ..th_serializers.talent import (TalentListSerializer, TalentDetailSerializer,
                                      TalentUpdateSerializer)
-from ..th_permissions import IsAdminUserOrRecruiter, IsAdminOrRecruiterOrTalentItself
+from ..th_permissions import IsAdminUserOrRecruiter, IsAdminOrTalentItself
 
 
 class TalentList(APIView):
@@ -72,7 +72,7 @@ class TalentListByRecruiter(APIView):
 
 class TalentDetail(APIView):
 
-    permission_classes = (IsAdminOrRecruiterOrTalentItself, )
+    permission_classes = (IsAdminOrTalentItself, )
 
     def get_object(self):
         obj = get_object_or_404(Talent, pk=self.kwargs["pk"])

@@ -59,3 +59,16 @@ class IsAdminOrRecruiterOrTalentItself(BasePermission):
             return True
 
         return False
+
+
+class IsAdminOrTalentItself(BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        if request.user:
+            is_admin = request.user.is_staff
+            is_talent_itself = getattr(request.user, 'talent', False) and request.user.talent == obj
+
+        if is_admin or is_talent_itself:
+            return True
+
+        return False
