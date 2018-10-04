@@ -17,6 +17,21 @@ class TalentList(APIView):
         List all talents
         """
         talents = Talent.objects.all()
+
+        # filter against expertises
+        expertises = self.request.query_params.get('expertises', None)
+        if expertises is not None:
+            expertises = [int(expertise) for expertise in expertises.split(",")]
+            for expertise in expertises:
+                talents = talents.filter(expertises=expertise)
+
+        # filter against experience
+        experience = self.request.query_params.get('experience', None)
+        if experience is not None:
+            experience = int(experience)
+            talents = talents.filter(experience__gte=experience)
+
+        # serialize the found talents
         serializer = TalentListSerializer(talents, many=True)
         return Response(serializer.data)
 
@@ -80,10 +95,8 @@ class TalentDetail(APIView):
         serializer = TalentUpdateSerializer(talent, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        print(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     """
