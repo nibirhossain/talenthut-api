@@ -77,17 +77,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         email = validated_data.get('email', None)
         username = validated_data.get('username', None)
-        first_name = validated_data.get('first_name', None)
-        last_name = validated_data.get('last_name', None)
+        # first_name = validated_data.get('first_name', None)
+        # last_name = validated_data.get('last_name', None)
 
         with transaction.atomic():
             try:
                 # create user
                 user = User(
                     email=email,
-                    username=username,
-                    first_name=first_name,
-                    last_name=last_name
+                    username=username
+                    # first_name=first_name,
+                    # last_name=last_name
                 )
                 user.set_password(validated_data['password'])
                 user.save()
@@ -96,9 +96,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
             except IntegrityError:
                 # create a dictionary and send all fields to check for which one gets exception
-                field_dict = {'username': username, 'first_name': first_name, 'last_name': last_name, 'email': email}
+                # field_dict = {'username': username, 'first_name': first_name, 'last_name': last_name, 'email': email}
                 # handle user related exceptions
-                raise UserCustomValidation(field_dict)
+                # raise UserCustomValidation(field_dict)
+
+                pass
 
 
 # The serializer used to update a specific user

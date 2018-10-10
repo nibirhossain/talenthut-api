@@ -1,9 +1,8 @@
 from rest_framework import serializers
 from django.db import transaction
-from django.contrib.auth.models import User
 
 from ..models import Talent
-from .user import UserSerializer, UserUpdateSerializer
+from .user import UserSerializer, UserUpdateSerializer, UserCreateSerializer
 from .recruiter_activity import RecruiterActivityWithEventSerializer
 from .resume import ResumeDetailSerializer
 from .serializers import TalentDescriptiveSerializer, ExpertiseSerializer
@@ -63,7 +62,8 @@ class TalentCreateSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             # create user
             user_data = validated_data.pop('user', None)
-            user = User.objects.create(**user_data)
+            # user = User.objects.create(**user_data)
+            user = UserCreateSerializer.create(UserCreateSerializer(), validated_data=user_data)
             # create talent
             talent = Talent.objects.create(user=user, **validated_data)
 

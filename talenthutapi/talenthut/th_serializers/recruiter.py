@@ -1,12 +1,11 @@
 from rest_framework import serializers
 from django.db import transaction
-from django.contrib.auth.models import User
 from rest_framework.exceptions import APIException
 from django.utils.encoding import force_text
 from rest_framework import status
 
 from ..models import Recruiter
-from .user import UserSerializer, UserUpdateSerializer
+from .user import UserSerializer, UserUpdateSerializer, UserCreateSerializer
 
 
 # The custom validator handles recruiter related exceptions
@@ -48,7 +47,8 @@ class RecruiterCreateSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             user_data = validated_data.pop('user')
             # create user
-            user = User.objects.create(**user_data)
+            # user = User.objects.create(**user_data)
+            user = UserCreateSerializer.create(UserCreateSerializer(), validated_data=user_data)
             # create recruiter
             recruiter = Recruiter.objects.create(user=user, **validated_data)
 
